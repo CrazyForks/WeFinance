@@ -25,31 +25,40 @@ from utils.design_system import (
 )
 
 
-def responsive_width_kwargs(component: Callable[..., Any], stretch: bool = True) -> Dict[str, object]:
+def responsive_width_kwargs(
+    component: Callable[..., Any], stretch: bool = True
+) -> Dict[str, object]:
     """统一兼容Streamlit旧use_container_width与新width参数"""
 
     param = _resolve_width_param(component)
     if not param:
         return {}
 
-    if param == "width":
-        return {"width": "stretch" if stretch else "content"}
-    return {"use_container_width": stretch}
+    if param == "use_container_width":
+        return {"use_container_width": stretch}
+    return {"width": "stretch" if stretch else "content"}
 
 
 @lru_cache(maxsize=32)
 def _resolve_width_param(component: Callable[..., Any]) -> str | None:
-    """缓存组件可用的宽度参数，避免多次反射"""
+    """缓存组件可用的宽度参数，避免多次反射
+
+    优先使用 use_container_width：部分组件（如某些 Streamlit 版本的
+    st.dataframe）会同时保留旧的整型 width 参数（像素宽度）与
+    use_container_width，此时 width 并不是新的 "stretch"/"content"
+    字符串枚举，误用会直接抛 TypeError。只有当 use_container_width
+    已从签名中移除时，才说明该组件真正迁移到了新的 width 字符串 API。
+    """
 
     try:
         signature = inspect.signature(component)
     except (TypeError, ValueError):
         return None
 
-    if "width" in signature.parameters:
-        return "width"
     if "use_container_width" in signature.parameters:
         return "use_container_width"
+    if "width" in signature.parameters:
+        return "width"
     return None
 
 
@@ -107,19 +116,20 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
     }
 
     # 渲染卡片
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="wf-health-card">
         <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
             <!-- 左侧：状态信息 -->
             <div style="flex: 0 0 auto;">
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_sm"]};
+                    color: {COLORS["text_secondary"]};
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: {SPACING['xs']};
-                ">{labels['title']}</div>
-                <div style="margin-bottom: {SPACING['sm']};">
+                    margin-bottom: {SPACING["xs"]};
+                ">{labels["title"]}</div>
+                <div style="margin-bottom: {SPACING["sm"]};">
                     {status_badge}
                 </div>
             </div>
@@ -128,58 +138,58 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
             <div style="
                 flex: 1;
                 display: flex;
-                gap: {SPACING['xl']};
+                gap: {SPACING["xl"]};
                 justify-content: center;
-                padding: 0 {SPACING['lg']};
+                padding: 0 {SPACING["lg"]};
             ">
                 <!-- 预算 -->
                 <div style="text-align: center;">
                     <div style="
-                        font-size: {FONTS['size_xs']};
-                        color: {COLORS['text_muted']};
+                        font-size: {FONTS["size_xs"]};
+                        color: {COLORS["text_muted"]};
                         text-transform: uppercase;
                         letter-spacing: 0.05em;
-                        margin-bottom: {SPACING['xs']};
-                    ">{labels['budget']}</div>
+                        margin-bottom: {SPACING["xs"]};
+                    ">{labels["budget"]}</div>
                     <div style="
-                        font-family: {FONTS['mono']};
-                        font-size: {FONTS['size_xl']};
+                        font-family: {FONTS["mono"]};
+                        font-size: {FONTS["size_xl"]};
                         font-weight: 600;
-                        color: {COLORS['text_primary']};
+                        color: {COLORS["text_primary"]};
                     ">¥{budget:,.0f}</div>
                 </div>
 
                 <!-- 已支出 -->
                 <div style="text-align: center;">
                     <div style="
-                        font-size: {FONTS['size_xs']};
-                        color: {COLORS['text_muted']};
+                        font-size: {FONTS["size_xs"]};
+                        color: {COLORS["text_muted"]};
                         text-transform: uppercase;
                         letter-spacing: 0.05em;
-                        margin-bottom: {SPACING['xs']};
-                    ">{labels['spent']}</div>
+                        margin-bottom: {SPACING["xs"]};
+                    ">{labels["spent"]}</div>
                     <div style="
-                        font-family: {FONTS['mono']};
-                        font-size: {FONTS['size_xl']};
+                        font-family: {FONTS["mono"]};
+                        font-size: {FONTS["size_xl"]};
                         font-weight: 600;
-                        color: {COLORS['accent']};
+                        color: {COLORS["accent"]};
                     ">¥{total_spent:,.0f}</div>
                 </div>
 
                 <!-- 剩余 -->
                 <div style="text-align: center;">
                     <div style="
-                        font-size: {FONTS['size_xs']};
-                        color: {COLORS['text_muted']};
+                        font-size: {FONTS["size_xs"]};
+                        color: {COLORS["text_muted"]};
                         text-transform: uppercase;
                         letter-spacing: 0.05em;
-                        margin-bottom: {SPACING['xs']};
-                    ">{labels['remaining']}</div>
+                        margin-bottom: {SPACING["xs"]};
+                    ">{labels["remaining"]}</div>
                     <div style="
-                        font-family: {FONTS['mono']};
-                        font-size: {FONTS['size_xl']};
+                        font-family: {FONTS["mono"]};
+                        font-size: {FONTS["size_xl"]};
                         font-weight: 600;
-                        color: {COLORS['success'] if remaining >= 0 else COLORS['error']};
+                        color: {COLORS["success"] if remaining >= 0 else COLORS["error"]};
                     ">¥{remaining:,.0f}</div>
                 </div>
             </div>
@@ -187,17 +197,19 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
             <!-- 右侧：环形进度条 -->
             <div style="flex: 0 0 auto; text-align: center;">
                 <div style="
-                    font-size: {FONTS['size_xs']};
-                    color: {COLORS['text_muted']};
+                    font-size: {FONTS["size_xs"]};
+                    color: {COLORS["text_muted"]};
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: {SPACING['xs']};
-                ">{labels['usage']}</div>
+                    margin-bottom: {SPACING["xs"]};
+                ">{labels["usage"]}</div>
                 {progress_ring}
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_transaction_card(
@@ -238,19 +250,20 @@ def render_transaction_card(
 
     icon = category_icons.get(transaction.category, "📦")
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="wf-metric-card" style="
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: {SPACING['sm']};
+        margin-bottom: {SPACING["sm"]};
     ">
-        <div style="display: flex; align-items: center; gap: {SPACING['md']};">
+        <div style="display: flex; align-items: center; gap: {SPACING["md"]};">
             <div style="
                 width: 48px;
                 height: 48px;
-                border-radius: {RADIUS['lg']};
-                background: {COLORS['primary_muted']};
+                border-radius: {RADIUS["lg"]};
+                background: {COLORS["primary_muted"]};
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -259,23 +272,25 @@ def render_transaction_card(
             <div>
                 <div style="
                     font-weight: 600;
-                    color: {COLORS['text_primary']};
-                    font-size: {FONTS['size_base']};
+                    color: {COLORS["text_primary"]};
+                    font-size: {FONTS["size_base"]};
                 ">{transaction.merchant}</div>
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_sm"]};
+                    color: {COLORS["text_secondary"]};
                 ">{transaction.date} · {transaction.category}</div>
             </div>
         </div>
         <div style="
-            font-family: {FONTS['mono']};
-            font-size: {FONTS['size_lg']};
+            font-family: {FONTS["mono"]};
+            font-size: {FONTS["size_lg"]};
             font-weight: 600;
-            color: {COLORS['error']};
+            color: {COLORS["error"]};
         ">-¥{transaction.amount:,.2f}</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_stat_grid(stats: List[Dict[str, Any]]) -> None:
@@ -293,36 +308,39 @@ def render_stat_grid(stats: List[Dict[str, Any]]) -> None:
             if "delta" in stat:
                 delta_color = stat.get("delta_color", "normal")
                 color_map = {
-                    "positive": COLORS['success'],
-                    "negative": COLORS['error'],
-                    "normal": COLORS['text_secondary'],
+                    "positive": COLORS["success"],
+                    "negative": COLORS["error"],
+                    "normal": COLORS["text_secondary"],
                 }
                 delta_html = f"""
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {color_map.get(delta_color, COLORS['text_secondary'])};
-                    margin-top: {SPACING['xs']};
-                ">{stat['delta']}</div>
+                    font-size: {FONTS["size_sm"]};
+                    color: {color_map.get(delta_color, COLORS["text_secondary"])};
+                    margin-top: {SPACING["xs"]};
+                ">{stat["delta"]}</div>
                 """
 
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div class="wf-metric-card">
                 <div style="
-                    font-size: {FONTS['size_xs']};
-                    color: {COLORS['text_muted']};
+                    font-size: {FONTS["size_xs"]};
+                    color: {COLORS["text_muted"]};
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: {SPACING['xs']};
-                ">{stat.get('icon', '')} {stat['label']}</div>
+                    margin-bottom: {SPACING["xs"]};
+                ">{stat.get("icon", "")} {stat["label"]}</div>
                 <div style="
-                    font-family: {FONTS['mono']};
-                    font-size: {FONTS['size_2xl']};
+                    font-family: {FONTS["mono"]};
+                    font-size: {FONTS["size_2xl"]};
                     font-weight: 600;
-                    color: {COLORS['text_primary']};
-                ">{stat['value']}</div>
+                    color: {COLORS["text_primary"]};
+                ">{stat["value"]}</div>
                 {delta_html}
             </div>
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
 
 
 def render_anomaly_alert(
@@ -343,45 +361,54 @@ def render_anomaly_alert(
     i18n = get_i18n()
     is_zh = i18n.locale == "zh_CN"
 
-    color = COLORS['warning'] if severity == "warning" else COLORS['error']
-    bg_color = f"rgba(245, 158, 11, 0.1)" if severity == "warning" else f"rgba(239, 68, 68, 0.1)"
+    color = COLORS["warning"] if severity == "warning" else COLORS["error"]
+    bg_color = (
+        f"rgba(245, 158, 11, 0.1)"
+        if severity == "warning"
+        else f"rgba(239, 68, 68, 0.1)"
+    )
     icon = "⚠️" if severity == "warning" else "🚨"
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="
         background: {bg_color};
         border: 1px solid {color}40;
         border-left: 4px solid {color};
-        border-radius: {RADIUS['md']};
-        padding: {SPACING['md']};
-        margin-bottom: {SPACING['md']};
+        border-radius: {RADIUS["md"]};
+        padding: {SPACING["md"]};
+        margin-bottom: {SPACING["md"]};
         animation: wf-fade-in 0.4s ease-out;
     ">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <div style="
-                    font-size: {FONTS['size_base']};
+                    font-size: {FONTS["size_base"]};
                     font-weight: 600;
                     color: {color};
-                    margin-bottom: {SPACING['xs']};
+                    margin-bottom: {SPACING["xs"]};
                 ">{icon} {merchant}</div>
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_sm"]};
+                    color: {COLORS["text_secondary"]};
                 ">{reason}</div>
             </div>
             <div style="
-                font-family: {FONTS['mono']};
-                font-size: {FONTS['size_lg']};
+                font-family: {FONTS["mono"]};
+                font-size: {FONTS["size_lg"]};
                 font-weight: 600;
                 color: {color};
             ">¥{amount:,.2f}</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
-def render_chat_message(content: str, is_user: bool = False, avatar: str | None = None) -> None:
+def render_chat_message(
+    content: str, is_user: bool = False, avatar: str | None = None
+) -> None:
     """
     渲染聊天消息气泡
 
@@ -401,20 +428,23 @@ def render_chat_message(content: str, is_user: bool = False, avatar: str | None 
 
     avatar_display = avatar or default_avatar
 
-    st.markdown(f"""
-    <div style="display: flex; justify-content: {align}; margin-bottom: {SPACING['md']};">
+    st.markdown(
+        f"""
+    <div style="display: flex; justify-content: {align}; margin-bottom: {SPACING["md"]};">
         <div class="{css_class}" style="max-width: 80%;">
-            <div style="display: flex; align-items: flex-start; gap: {SPACING['sm']};">
+            <div style="display: flex; align-items: flex-start; gap: {SPACING["sm"]};">
                 <span style="font-size: 1.25rem;">{avatar_display}</span>
                 <div style="
-                    font-size: {FONTS['size_base']};
-                    color: {COLORS['text_primary']};
+                    font-size: {FONTS["size_base"]};
+                    color: {COLORS["text_primary"]};
                     line-height: 1.6;
                 ">{content}</div>
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_loading_state(message: str = "加载中...") -> None:
@@ -424,27 +454,28 @@ def render_loading_state(message: str = "加载中...") -> None:
     Args:
         message: 加载提示文字
     """
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style="
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: {SPACING['2xl']};
+        padding: {SPACING["2xl"]};
         animation: wf-fade-in 0.3s ease-out;
     ">
         <div style="
             width: 40px;
             height: 40px;
-            border: 3px solid {COLORS['border']};
-            border-top-color: {COLORS['primary']};
+            border: 3px solid {COLORS["border"]};
+            border-top-color: {COLORS["primary"]};
             border-radius: 50%;
             animation: spin 1s linear infinite;
         "></div>
         <div style="
-            margin-top: {SPACING['md']};
-            font-size: {FONTS['size_sm']};
-            color: {COLORS['text_secondary']};
+            margin-top: {SPACING["md"]};
+            font-size: {FONTS["size_sm"]};
+            color: {COLORS["text_secondary"]};
         ">{message}</div>
     </div>
     <style>
@@ -452,7 +483,9 @@ def render_loading_state(message: str = "加载中...") -> None:
         to {{ transform: rotate(360deg); }}
     }}
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_insight_card(
@@ -473,14 +506,15 @@ def render_insight_card(
         color: 颜色主题 ("primary", "success", "warning", "error")
     """
     color_map = {
-        "primary": COLORS['primary'],
-        "success": COLORS['success'],
-        "warning": COLORS['warning'],
-        "error": COLORS['error'],
+        "primary": COLORS["primary"],
+        "success": COLORS["success"],
+        "warning": COLORS["warning"],
+        "error": COLORS["error"],
     }
-    accent_color = color_map.get(color, COLORS['primary'])
+    accent_color = color_map.get(color, COLORS["primary"])
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="wf-metric-card" style="position: relative; overflow: hidden;">
         <div style="
             position: absolute;
@@ -490,32 +524,34 @@ def render_insight_card(
             height: 3px;
             background: {accent_color};
         "></div>
-        <div style="display: flex; align-items: flex-start; gap: {SPACING['md']}; padding-top: {SPACING['sm']};">
+        <div style="display: flex; align-items: flex-start; gap: {SPACING["md"]}; padding-top: {SPACING["sm"]};">
             <div style="
                 font-size: 2rem;
                 opacity: 0.8;
             ">{icon}</div>
             <div style="flex: 1;">
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_sm"]};
+                    color: {COLORS["text_secondary"]};
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
-                    margin-bottom: {SPACING['xs']};
+                    margin-bottom: {SPACING["xs"]};
                 ">{title}</div>
                 <div style="
-                    font-family: {FONTS['mono']};
-                    font-size: {FONTS['size_2xl']};
+                    font-family: {FONTS["mono"]};
+                    font-size: {FONTS["size_2xl"]};
                     font-weight: 600;
                     color: {accent_color};
-                    margin-bottom: {SPACING['xs']};
+                    margin-bottom: {SPACING["xs"]};
                 ">{value}</div>
                 <div style="
-                    font-size: {FONTS['size_sm']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_sm"]};
+                    color: {COLORS["text_secondary"]};
                     line-height: 1.5;
                 ">{description}</div>
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

@@ -228,6 +228,22 @@
     "message_insufficient_data": "数据较少，暂未启用异常检测。",
     "message_reduced_sensitivity": "数据积累中，检测灵敏度已降低以减少误报。"
   },
+  "business_profile": {
+    "title": "📈 经营流水画像",
+    "description": "把已有账单数据换一个视角查看：收支趋势、交易对手集中度和异常预警，供个体户和自由职业者了解自己的经营流水。",
+    "require_upload": "请先上传账单，再回到该页面查看经营流水画像。",
+    "trend_title": "收支趋势",
+    "trend_empty": "暂无足够数据生成趋势图。",
+    "concentration_title": "交易对手集中度",
+    "concentration_empty": "暂无交易对手数据。",
+    "concentration_warning": "单一交易对手占比达 {share}%，集中度较高，建议关注该来源的稳定性。",
+    "label_merchant": "交易对手",
+    "label_share": "占比",
+    "label_unknown": "未知商户",
+    "anomaly_title": "经营异常预警",
+    "anomaly_none": "未检测到异常交易。",
+    "footer_note": "本视图基于你已上传的账单数据重新聚合展示，不新增数据来源，不构成经营决策依据。"
+  },
   "chat": {
     "title": "💬 对话式财务顾问",
     "subtitle": "向AI提问预算、消费和理财相关问题，获得个性化建议。",

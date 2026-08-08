@@ -51,8 +51,8 @@ def _generate_personalized_actions_llm(
         prompt = f"""You are a professional financial advisor. The user's spending in "{category}" category increased by {delta_pct:.1f}% (extra ¥{delta_amount:.0f}) compared to last month.
 
 User financial background:
-- Monthly total spending: ¥{context.get('monthly_total', 0):.2f}
-- This category ratio: {context.get('category_ratio', 0):.1f}%
+- Monthly total spending: ¥{context.get("monthly_total", 0):.2f}
+- This category ratio: {context.get("category_ratio", 0):.1f}%
 
 Generate 2-3 actionable saving tips:
 1. Specific and feasible (not generic "reduce XX")
@@ -74,8 +74,8 @@ Requirements:
         prompt = f"""你是专业的理财顾问。用户在「{category}」类别的支出比上月增加了{delta_pct:.1f}%（多花¥{delta_amount:.0f}）。
 
 用户财务背景：
-- 月总支出: ¥{context.get('monthly_total', 0):.2f}
-- 该类别占比: {context.get('category_ratio', 0):.1f}%
+- 月总支出: ¥{context.get("monthly_total", 0):.2f}
+- 该类别占比: {context.get("category_ratio", 0):.1f}%
 
 请生成2-3条可操作的节约建议：
 1. 具体可行（不要"减少XX"这种废话）
@@ -182,6 +182,14 @@ def calculate_category_totals(transactions: Iterable[Transaction]) -> Dict[str, 
     totals: Dict[str, float] = defaultdict(float)
     for txn in transactions:
         totals[txn.category] += float(txn.amount)
+    return dict(totals)
+
+
+def calculate_merchant_totals(transactions: Iterable[Transaction]) -> Dict[str, float]:
+    """Aggregate spending totals per merchant (counterparty concentration)."""
+    totals: Dict[str, float] = defaultdict(float)
+    for txn in transactions:
+        totals[txn.merchant] += float(txn.amount)
     return dict(totals)
 
 

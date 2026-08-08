@@ -228,6 +228,22 @@
     "message_insufficient_data": "Not enough data yet to enable anomaly detection.",
     "message_reduced_sensitivity": "Data volume is still low. Detection sensitivity has been reduced to avoid false positives."
   },
+  "business_profile": {
+    "title": "📈 Business Cash Flow Profile",
+    "description": "A different lens on your existing bill data: cash flow trend, counterparty concentration, and anomaly alerts, for sole proprietors and freelancers tracking their own business flow.",
+    "require_upload": "Upload bills first, then return to this page to see your business cash flow profile.",
+    "trend_title": "Cash Flow Trend",
+    "trend_empty": "Not enough data yet to plot a trend.",
+    "concentration_title": "Counterparty Concentration",
+    "concentration_empty": "No counterparty data yet.",
+    "concentration_warning": "Your top counterparty accounts for {share}% of flow. That concentration is worth watching.",
+    "label_merchant": "Counterparty",
+    "label_share": "Share",
+    "label_unknown": "Unknown merchant",
+    "anomaly_title": "Business Anomaly Alerts",
+    "anomaly_none": "No anomalies detected.",
+    "footer_note": "This view re-aggregates your uploaded bill data from a different angle. It adds no new data source and is not a business decision on its own."
+  },
   "chat": {
     "title": "💬 Conversational Financial Advisor",
     "subtitle": "Ask about budgets, spending, and investing. Get personalised guidance.",

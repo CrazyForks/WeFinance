@@ -10,7 +10,13 @@ from typing import Callable
 import streamlit as st
 
 from models.entities import Transaction
-from pages import advisor_chat, bill_upload, investment_recs, spending_insights
+from pages import (
+    advisor_chat,
+    bill_upload,
+    business_profile,
+    investment_recs,
+    spending_insights,
+)
 from modules.analysis import compute_anomaly_report
 from utils import session as session_utils
 from utils.session import (
@@ -21,7 +27,14 @@ from utils.session import (
 )
 from utils.storage import clear_all_storage, load_from_storage
 from utils.ui_components import responsive_width_kwargs
-from utils.design_system import inject_global_styles, render_hero_banner, COLORS, FONTS, SPACING, RADIUS
+from utils.design_system import (
+    inject_global_styles,
+    render_hero_banner,
+    COLORS,
+    FONTS,
+    SPACING,
+    RADIUS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -123,44 +136,44 @@ def _render_home() -> None:
     # Modern Finance Luxury hero banner with glassmorphism
     st.markdown(
         f"""
-        <div class="wf-hero" style="margin-bottom: {SPACING['xl']};">
+        <div class="wf-hero" style="margin-bottom: {SPACING["xl"]};">
             <div style="position: relative; z-index: 1;">
                 <div style="
                     display: inline-flex;
                     align-items: center;
                     gap: 0.5rem;
-                    background: {COLORS['accent_muted']};
+                    background: {COLORS["accent_muted"]};
                     padding: 0.375rem 0.75rem;
                     border-radius: 9999px;
-                    font-size: {FONTS['size_xs']};
-                    color: {COLORS['accent']};
+                    font-size: {FONTS["size_xs"]};
+                    color: {COLORS["accent"]};
                     font-weight: 600;
                     letter-spacing: 0.05em;
-                    margin-bottom: {SPACING['md']};
+                    margin-bottom: {SPACING["md"]};
                 ">
                     <span style="
                         width: 6px;
                         height: 6px;
-                        background: {COLORS['accent']};
+                        background: {COLORS["accent"]};
                         border-radius: 50%;
                         animation: wf-pulse-glow 2s ease-in-out infinite;
                     "></span>
-                    {'AI驱动' if is_zh else 'AI-Powered'}
+                    {"AI驱动" if is_zh else "AI-Powered"}
                 </div>
                 <h1 style="
-                    font-family: {FONTS['heading']};
-                    font-size: {FONTS['size_4xl']};
+                    font-family: {FONTS["heading"]};
+                    font-size: {FONTS["size_4xl"]};
                     font-weight: 400;
-                    color: {COLORS['text_primary']};
-                    margin: 0 0 {SPACING['sm']} 0;
+                    color: {COLORS["text_primary"]};
+                    margin: 0 0 {SPACING["sm"]} 0;
                     letter-spacing: -0.02em;
                     line-height: 1.2;
                 ">
                     {i18n.t("app.value_banner_title")}
                 </h1>
                 <p style="
-                    font-size: {FONTS['size_lg']};
-                    color: {COLORS['text_secondary']};
+                    font-size: {FONTS["size_lg"]};
+                    color: {COLORS["text_secondary"]};
                     margin: 0;
                     max-width: 600px;
                     line-height: 1.6;
@@ -169,45 +182,45 @@ def _render_home() -> None:
                 </p>
                 <div style="
                     display: flex;
-                    gap: {SPACING['md']};
-                    margin-top: {SPACING['lg']};
+                    gap: {SPACING["md"]};
+                    margin-top: {SPACING["lg"]};
                     flex-wrap: wrap;
                 ">
                     <div style="
                         display: flex;
                         align-items: center;
                         gap: 0.5rem;
-                        font-size: {FONTS['size_sm']};
-                        color: {COLORS['text_secondary']};
+                        font-size: {FONTS["size_sm"]};
+                        color: {COLORS["text_secondary"]};
                     ">
-                        <span style="color: {COLORS['success']};">●</span>
-                        {'100% OCR准确率' if is_zh else '100% OCR Accuracy'}
+                        <span style="color: {COLORS["success"]};">●</span>
+                        {"100% OCR准确率" if is_zh else "100% OCR Accuracy"}
                     </div>
                     <div style="
                         display: flex;
                         align-items: center;
                         gap: 0.5rem;
-                        font-size: {FONTS['size_sm']};
-                        color: {COLORS['text_secondary']};
+                        font-size: {FONTS["size_sm"]};
+                        color: {COLORS["text_secondary"]};
                     ">
-                        <span style="color: {COLORS['primary']};">●</span>
-                        {'智能异常检测' if is_zh else 'Smart Anomaly Detection'}
+                        <span style="color: {COLORS["primary"]};">●</span>
+                        {"智能异常检测" if is_zh else "Smart Anomaly Detection"}
                     </div>
                     <div style="
                         display: flex;
                         align-items: center;
                         gap: 0.5rem;
-                        font-size: {FONTS['size_sm']};
-                        color: {COLORS['text_secondary']};
+                        font-size: {FONTS["size_sm"]};
+                        color: {COLORS["text_secondary"]};
                     ">
-                        <span style="color: {COLORS['accent']};">●</span>
-                        {'可解释AI建议' if is_zh else 'Explainable AI Advice'}
+                        <span style="color: {COLORS["accent"]};">●</span>
+                        {"可解释AI建议" if is_zh else "Explainable AI Advice"}
                     </div>
                 </div>
             </div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     # Anomaly warnings (prioritized above metrics)
@@ -272,88 +285,99 @@ def _render_home() -> None:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="wf-metric-card">
             <div style="
-                font-size: {FONTS['size_xs']};
-                color: {COLORS['text_muted']};
+                font-size: {FONTS["size_xs"]};
+                color: {COLORS["text_muted"]};
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                margin-bottom: {SPACING['xs']};
-            ">{'已记录交易' if is_zh else 'Transactions'}</div>
+                margin-bottom: {SPACING["xs"]};
+            ">{"已记录交易" if is_zh else "Transactions"}</div>
             <div style="
-                font-family: {FONTS['mono']};
-                font-size: {FONTS['size_3xl']};
+                font-family: {FONTS["mono"]};
+                font-size: {FONTS["size_3xl"]};
                 font-weight: 600;
-                color: {COLORS['text_primary']};
-                margin-bottom: {SPACING['sm']};
-            ">{len(transactions)}<span style="font-size: {FONTS['size_lg']}; color: {COLORS['text_secondary']}; margin-left: 0.25rem;">{'笔' if is_zh else ''}</span></div>
+                color: {COLORS["text_primary"]};
+                margin-bottom: {SPACING["sm"]};
+            ">{len(transactions)}<span style="font-size: {FONTS["size_lg"]}; color: {COLORS["text_secondary"]}; margin-left: 0.25rem;">{"笔" if is_zh else ""}</span></div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button(
             i18n.t("app.btn_upload_bills"),
             key="home_upload_btn",
             type="primary",
-            **responsive_width_kwargs(st.button)
+            **responsive_width_kwargs(st.button),
         ):
             st.session_state["selected_page"] = "bill_upload"
             st.rerun()
 
     with col2:
-        remaining_color = COLORS['success'] if budget_remaining >= 0 else COLORS['error']
-        st.markdown(f"""
+        remaining_color = (
+            COLORS["success"] if budget_remaining >= 0 else COLORS["error"]
+        )
+        st.markdown(
+            f"""
         <div class="wf-metric-card">
             <div style="
-                font-size: {FONTS['size_xs']};
-                color: {COLORS['text_muted']};
+                font-size: {FONTS["size_xs"]};
+                color: {COLORS["text_muted"]};
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                margin-bottom: {SPACING['xs']};
-            ">{'预算剩余' if is_zh else 'Budget Remaining'}</div>
+                margin-bottom: {SPACING["xs"]};
+            ">{"预算剩余" if is_zh else "Budget Remaining"}</div>
             <div style="
-                font-family: {FONTS['mono']};
-                font-size: {FONTS['size_3xl']};
+                font-family: {FONTS["mono"]};
+                font-size: {FONTS["size_3xl"]};
                 font-weight: 600;
                 color: {remaining_color};
-                margin-bottom: {SPACING['xs']};
+                margin-bottom: {SPACING["xs"]};
             ">¥{budget_remaining:,.0f}</div>
             <div style="
-                font-size: {FONTS['size_sm']};
-                color: {COLORS['text_secondary']};
-            ">{'已支出' if is_zh else 'Spent'}: ¥{total_spent:,.0f} ({usage_rate:.0f}%)</div>
+                font-size: {FONTS["size_sm"]};
+                color: {COLORS["text_secondary"]};
+            ">{"已支出" if is_zh else "Spent"}: ¥{total_spent:,.0f} ({usage_rate:.0f}%)</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button(
             i18n.t("app.btn_view_analysis"),
             key="home_analysis_btn",
-            **responsive_width_kwargs(st.button)
+            **responsive_width_kwargs(st.button),
         ):
             st.session_state["selected_page"] = "spending_insights"
             st.rerun()
 
     with col3:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="wf-metric-card">
             <div style="
-                font-size: {FONTS['size_xs']};
-                color: {COLORS['text_muted']};
+                font-size: {FONTS["size_xs"]};
+                color: {COLORS["text_muted"]};
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                margin-bottom: {SPACING['xs']};
-            ">{'AI对话' if is_zh else 'AI Chats'}</div>
+                margin-bottom: {SPACING["xs"]};
+            ">{"AI对话" if is_zh else "AI Chats"}</div>
             <div style="
-                font-family: {FONTS['mono']};
-                font-size: {FONTS['size_3xl']};
+                font-family: {FONTS["mono"]};
+                font-size: {FONTS["size_3xl"]};
                 font-weight: 600;
-                color: {COLORS['primary']};
-                margin-bottom: {SPACING['sm']};
-            ">{len(chat_history)}<span style="font-size: {FONTS['size_lg']}; color: {COLORS['text_secondary']}; margin-left: 0.25rem;">{'次' if is_zh else ''}</span></div>
+                color: {COLORS["primary"]};
+                margin-bottom: {SPACING["sm"]};
+            ">{len(chat_history)}<span style="font-size: {FONTS["size_lg"]}; color: {COLORS["text_secondary"]}; margin-left: 0.25rem;">{"次" if is_zh else ""}</span></div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button(
             i18n.t("app.btn_start_chat"),
             key="home_chat_btn",
-            **responsive_width_kwargs(st.button)
+            **responsive_width_kwargs(st.button),
         ):
             st.session_state["selected_page"] = "advisor_chat"
             st.rerun()
@@ -365,9 +389,7 @@ def _render_home() -> None:
     current_locale = st.session_state.get("locale", "zh_CN")
     comparison_df = get_comparison_table(current_locale)
     st.dataframe(
-        comparison_df,
-        **responsive_width_kwargs(st.dataframe),
-        hide_index=True
+        comparison_df, **responsive_width_kwargs(st.dataframe), hide_index=True
     )
 
     # Get recommendations button
@@ -378,7 +400,7 @@ def _render_home() -> None:
             i18n.t("app.btn_get_recommendations"),
             key="home_invest_btn",
             type="secondary",
-            **responsive_width_kwargs(st.button)
+            **responsive_width_kwargs(st.button),
         ):
             st.session_state["selected_page"] = "investment_recs"
             st.rerun()
@@ -392,6 +414,7 @@ PAGES: dict[str, Callable[[], None]] = {
     "home": _render_home,
     "bill_upload": bill_upload.render,
     "spending_insights": spending_insights.render,
+    "business_profile": business_profile.render,
     "advisor_chat": advisor_chat.render,
     "investment_recs": investment_recs.render,
 }
@@ -432,20 +455,21 @@ def main() -> None:
 
     with st.sidebar:
         # Sidebar header with brand styling
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="
-            padding: {SPACING['md']} 0;
-            border-bottom: 1px solid {COLORS['border']};
-            margin-bottom: {SPACING['md']};
+            padding: {SPACING["md"]} 0;
+            border-bottom: 1px solid {COLORS["border"]};
+            margin-bottom: {SPACING["md"]};
         ">
             <h2 style="
-                font-family: {FONTS['heading']};
-                font-size: {FONTS['size_xl']};
-                color: {COLORS['text_primary']};
+                font-family: {FONTS["heading"]};
+                font-size: {FONTS["size_xl"]};
+                color: {COLORS["text_primary"]};
                 margin: 0;
                 display: flex;
                 align-items: center;
-                gap: {SPACING['sm']};
+                gap: {SPACING["sm"]};
             ">
                 <span style="
                     display: inline-flex;
@@ -453,20 +477,22 @@ def main() -> None:
                     justify-content: center;
                     width: 32px;
                     height: 32px;
-                    background: {COLORS['gradient_primary']};
-                    border-radius: {RADIUS['md']};
+                    background: {COLORS["gradient_primary"]};
+                    border-radius: {RADIUS["md"]};
                     font-size: 1rem;
                 ">💰</span>
                 WeFinance
             </h2>
             <p style="
-                font-size: {FONTS['size_xs']};
-                color: {COLORS['text_muted']};
-                margin: {SPACING['xs']} 0 0 0;
+                font-size: {FONTS["size_xs"]};
+                color: {COLORS["text_muted"]};
+                margin: {SPACING["xs"]} 0 0 0;
                 letter-spacing: 0.05em;
             ">AI-Powered Financial Copilot</p>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
         # 语言切换（紧凑）
         locale_labels = {"zh_CN": "中文", "en_US": "English"}
@@ -490,28 +516,40 @@ def main() -> None:
         has_transactions = len(transactions) > 0
         has_chat_history = len(st.session_state.get("chat_history", [])) > 0
         has_analysis = len(st.session_state.get("analysis_summary", [])) > 0
-        has_recommendations = len(st.session_state.get("product_recommendations", [])) > 0
+        has_recommendations = (
+            len(st.session_state.get("product_recommendations", [])) > 0
+        )
 
-        steps_completed = sum([has_transactions, has_analysis, has_chat_history, has_recommendations])
+        steps_completed = sum(
+            [has_transactions, has_analysis, has_chat_history, has_recommendations]
+        )
         total_steps = 4
         progress_percentage = steps_completed / total_steps
 
         # 紧凑进度显示
-        st.markdown(f"**{'📍 进度' if current_locale == 'zh_CN' else '📍 Progress'}** {steps_completed}/{total_steps}")
+        st.markdown(
+            f"**{'📍 进度' if current_locale == 'zh_CN' else '📍 Progress'}** {steps_completed}/{total_steps}"
+        )
         st.progress(progress_percentage)
 
         # 智能建议下一步（精简）
         if not has_transactions:
-            next_step = "👉 上传账单" if current_locale == "zh_CN" else "👉 Upload bills"
+            next_step = (
+                "👉 上传账单" if current_locale == "zh_CN" else "👉 Upload bills"
+            )
             next_page_key = "bill_upload"
         elif not has_analysis:
-            next_step = "👉 查看分析" if current_locale == "zh_CN" else "👉 View insights"
+            next_step = (
+                "👉 查看分析" if current_locale == "zh_CN" else "👉 View insights"
+            )
             next_page_key = "spending_insights"
         elif not has_chat_history:
             next_step = "👉 AI咨询" if current_locale == "zh_CN" else "👉 Chat with AI"
             next_page_key = "advisor_chat"
         elif not has_recommendations:
-            next_step = "👉 投资建议" if current_locale == "zh_CN" else "👉 Invest advice"
+            next_step = (
+                "👉 投资建议" if current_locale == "zh_CN" else "👉 Invest advice"
+            )
             next_page_key = "investment_recs"
         else:
             next_step = "✅ 已完成" if current_locale == "zh_CN" else "✅ All done"
@@ -528,12 +566,18 @@ def main() -> None:
 
         st.markdown("---")
 
-        # 精简导航（移除首页，只保留4个核心步骤）
+        # 精简导航（移除首页，保留4个核心步骤 + 1个补充视角）
         nav_labels = {
-            "bill_upload": f"{'✅' if has_transactions else '1️⃣'} " + ("账单上传" if current_locale == "zh_CN" else "Upload"),
-            "spending_insights": f"{'✅' if has_analysis else '2️⃣'} " + ("消费分析" if current_locale == "zh_CN" else "Analysis"),
-            "advisor_chat": f"{'✅' if has_chat_history else '3️⃣'} " + ("AI顾问" if current_locale == "zh_CN" else "AI Chat"),
-            "investment_recs": f"{'✅' if has_recommendations else '4️⃣'} " + ("投资建议" if current_locale == "zh_CN" else "Invest"),
+            "bill_upload": f"{'✅' if has_transactions else '1️⃣'} "
+            + ("账单上传" if current_locale == "zh_CN" else "Upload"),
+            "spending_insights": f"{'✅' if has_analysis else '2️⃣'} "
+            + ("消费分析" if current_locale == "zh_CN" else "Analysis"),
+            "business_profile": "📈 "
+            + ("经营画像" if current_locale == "zh_CN" else "Business View"),
+            "advisor_chat": f"{'✅' if has_chat_history else '3️⃣'} "
+            + ("AI顾问" if current_locale == "zh_CN" else "AI Chat"),
+            "investment_recs": f"{'✅' if has_recommendations else '4️⃣'} "
+            + ("投资建议" if current_locale == "zh_CN" else "Invest"),
         }
         radio_options = list(nav_labels.values())
         selected_page = st.session_state.get("selected_page", "home")
@@ -561,7 +605,7 @@ def main() -> None:
             value=float(current_budget),
             step=500.0,
             format="%.0f",
-            key="global_budget_sidebar"
+            key="global_budget_sidebar",
         )
         if new_budget != current_budget:
             session_utils.set_monthly_budget(new_budget)
@@ -617,7 +661,9 @@ def main() -> None:
                     st.session_state["confirm_clear"] = True
 
         if st.session_state.get("confirm_clear"):
-            st.caption("⚠️ " + ("再次点击确认" if current_locale == "zh_CN" else "Click again"))
+            st.caption(
+                "⚠️ " + ("再次点击确认" if current_locale == "zh_CN" else "Click again")
+            )
 
     render = PAGES.get(selection)
     if render is None:
@@ -626,7 +672,11 @@ def main() -> None:
 
     try:
         # Add loading indicator for better UX
-        with st.spinner("🔄 Loading..." if st.session_state.get("locale") == "en_US" else "🔄 加载中..."):
+        with st.spinner(
+            "🔄 Loading..."
+            if st.session_state.get("locale") == "en_US"
+            else "🔄 加载中..."
+        ):
             render()
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("页面渲染失败：%s", exc)

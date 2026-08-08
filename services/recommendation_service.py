@@ -398,11 +398,11 @@ Requirements:
         self, allocation: Dict[str, float], i18n: I18n
     ) -> Tuple[str, str]:
         allocation_desc = ", ".join(
-            f"{i18n.t('recommendation.assets.' + asset)} {percentage*100:.0f}%"
+            f"{i18n.t('recommendation.assets.' + asset)} {percentage * 100:.0f}%"
             for asset, percentage in allocation.items()
         )
         allocation_rationale = "\n".join(
-            f"- {i18n.t('recommendation.assets.' + asset)}: {percentage*100:.0f}%"
+            f"- {i18n.t('recommendation.assets.' + asset)}: {percentage * 100:.0f}%"
             for asset, percentage in allocation.items()
         )
         return allocation_desc, allocation_rationale
@@ -455,7 +455,7 @@ Requirements:
 
         breakdown_str = (
             "\n".join(
-                f"  - {cat}: ¥{amt:.2f} ({amt/monthly_avg*100:.1f}%)"
+                f"  - {cat}: ¥{amt:.2f} ({amt / monthly_avg * 100:.1f}%)"
                 for cat, amt in list(breakdown.items())[:5]
             )
             if breakdown and monthly_avg > 0
@@ -469,7 +469,7 @@ Requirements:
 - 消费波动率：{volatility:.2%}（越高说明消费越不稳定）
 - 可投资金额：¥{investable:.2f}/月
 - 风险偏好：{risk_map.get(risk_profile, risk_profile)}
-- 投资目标：{investment_goal or '未指定具体目标'}
+- 投资目标：{investment_goal or "未指定具体目标"}
 
 消费结构（Top 5类目）：
 {breakdown_str}
@@ -741,7 +741,7 @@ User Financial Profile:
 - Budget usage: {budget_usage_rate:.1f}%
 - Spending volatility: {volatility:.2%}
 - Investable amount: ¥{investable:,.2f}/month
-- Top spending category: {top_category} ({top_category_share*100:.1f}%)
+- Top spending category: {top_category} ({top_category_share * 100:.1f}%)
 - Total transactions: {len(txn_list)} records
 
 Question Generation Rules:
@@ -773,7 +773,9 @@ Requirements:
 - Natural, conversational tone
 """
         else:  # zh_CN
-            system_prompt = """你是专业的理财顾问，基于用户的真实消费数据生成个性化风险评估问题。"""
+            system_prompt = (
+                """你是专业的理财顾问，基于用户的真实消费数据生成个性化风险评估问题。"""
+            )
 
             user_prompt = f"""基于用户的真实财务数据，生成3-5个个性化的风险承受能力评估问题：
 
@@ -783,7 +785,7 @@ Requirements:
 - 预算使用率：{budget_usage_rate:.1f}%
 - 消费波动率：{volatility:.2%}
 - 可投资金额：¥{investable:,.2f}/月
-- 最大支出类目：{top_category}（占比{top_category_share*100:.1f}%）
+- 最大支出类目：{top_category}（占比{top_category_share * 100:.1f}%）
 - 交易记录：{len(txn_list)}笔
 
 问题生成规则：
@@ -908,8 +910,10 @@ Requirements:
 
         # 消费类别详情
         category_details = "\n".join(
-            f"  - **{cat}**: ¥{amount:,.2f} ({amount/total_amount*100:.1f}%)"
-            for cat, amount in sorted(categories.items(), key=lambda x: x[1], reverse=True)
+            f"  - **{cat}**: ¥{amount:,.2f} ({amount / total_amount * 100:.1f}%)"
+            for cat, amount in sorted(
+                categories.items(), key=lambda x: x[1], reverse=True
+            )
         )
 
         # 完整交易明细（供LLM深入分析）
@@ -928,13 +932,13 @@ Requirements:
 
         # 资产配置详情
         allocation_details = "\n".join(
-            f"  - **{asset}**: {percentage*100:.0f}%"
+            f"  - **{asset}**: {percentage * 100:.0f}%"
             for asset, percentage in allocation.items()
         )
 
         # 构建详细的Prompt
         if locale == "en_US":
-            system_prompt = """You are a senior financial advisor with 15+ years of experience in wealth management. Generate a comprehensive, professional financial advisory report based on real transaction data."""
+            system_prompt = """You are a financial analysis and education assistant. Generate a comprehensive, professional financial analysis report based on real transaction data. Explain frameworks, trade-offs, and typical allocation logic so the user can make an informed decision themselves. Do not name specific funds, ETFs, brokers, or platforms, and do not give definitive buy/sell instructions or exact execution parameters (amounts, dates, price levels) as if they were commands to follow -- this report does not substitute for a licensed financial advisor's judgment."""
 
             user_prompt = f"""Generate a detailed financial advisory report in Markdown format.
 
@@ -943,7 +947,7 @@ Requirements:
 - Spending Volatility: {volatility:.2%}
 - Investable Amount: ¥{investable:,.2f}/month
 - Risk Tolerance: {risk_profile} ({risk_name_cn})
-- Investment Goal: {investment_goal or 'Not specified'}
+- Investment Goal: {investment_goal or "Not specified"}
 - Total Transactions: {len(txn_list)} records, ¥{total_amount:,.2f}
 
 ## Spending Breakdown
@@ -962,7 +966,8 @@ Generate a comprehensive report (4000-6000 words) with the following structure:
 - Must analyze based on the real transaction history above, not generic advice
 - All data must be specific with amounts, percentages, timeframes
 - Analyze spending trends, anomalies, optimization opportunities
-- Provide actionable recommendations with real product names, codes, platforms
+- Explain asset classes, strategies, and decision frameworks concretely, but do not name specific funds, ETFs, brokers, or platforms, and do not issue definitive buy/sell instructions or exact execution parameters as commands
+- This report is analysis and education only. It does not constitute investment, credit, or insurance decision advice, and does not substitute a licensed institution's judgment. State this explicitly and remind the user to verify independently and consult a licensed advisor before acting
 
 ### 1. Executive Summary (400-500 words)
 - Key findings and recommendations (insights from real transaction data)
@@ -994,19 +999,19 @@ Generate a comprehensive report (4000-6000 words) with the following structure:
   * Best/worst/average scenario analysis
   * Cumulative effect of specific monthly investment amounts
 - **Rebalancing Strategy**: When to adjust, adjustment magnitude
-- **Tax Efficiency Considerations**: Specific tax avoidance strategies
-- **Specific Product Recommendations**:
-  * At least 3-5 funds/ETFs with complete names and codes
-  * Risk level, historical returns, fees for each product
-  * Purchase channels and platform recommendations
+- **Tax Efficiency Considerations**: General tax-efficiency concepts relevant to this profile
+- **Asset Class Selection Framework**:
+  * Explain the characteristics, risk level, and typical use case of 3-5 relevant asset/strategy categories (e.g. broad-market index funds, bond funds, money market funds) without naming specific fund names, tickers, or issuers
+  * Describe what to compare (risk level, historical volatility range, fee structure) rather than citing specific historical returns of named products
+  * Explain what to look for when choosing a channel or platform (licensing, fee transparency, product coverage) without naming specific platforms
 
 ### 5. Execution Plan (1000-1200 words)
-- **Step-by-Step Implementation Guide**:
-  * Month 1-3: Account opening, initial allocation, auto-invest setup (specific steps)
-  * Month 3-6: Monitoring and adjustment (specific indicators and thresholds)
-  * Month 6-12: Optimization and upgrade (specific improvement directions)
-- **Account Opening & Platform Selection**: Recommend 3-5 platforms, compare fees and features
-- **Automation Setup**: Detailed auto-invest, take-profit and stop-loss settings
+- **Step-by-Step Framework**:
+  * Month 1-3: what to research and decide before opening any account (specific decision criteria)
+  * Month 3-6: what indicators to monitor and what thresholds would warrant a review
+  * Month 6-12: how to evaluate whether the plan is working and what to reconsider
+- **Choosing an Account or Platform**: Explain the criteria to evaluate (licensing/regulation, fee structure, product coverage) without recommending specific platforms
+- **Execution Discipline Concepts**: Explain how mechanisms like periodic investing and rebalancing work and why they matter, without prescribing exact amounts, dates, or price levels as instructions to execute
 - **Performance Monitoring Plan**: Specific KPI indicators and monitoring frequency
 
 ### 6. Risk Warnings & Disclaimers (600-800 words)
@@ -1018,13 +1023,13 @@ Generate a comprehensive report (4000-6000 words) with the following structure:
 
 Format Requirements:
 - Markdown format with clear heading hierarchy
-- Use tables for complex data (product comparisons, return calculations)
+- Use tables for complex data (comparison criteria, scenario calculations)
 - Bold important data and conclusions
-- Avoid generic advice - all recommendations must have specific numbers and timelines
+- Avoid generic advice - ground every point in the user's real numbers, but never name specific funds, brokers, or platforms, and never phrase a specific product choice or execution parameter as an instruction
 - Total report should be 4000-6000 words"""
 
         else:  # zh_CN
-            system_prompt = """你是一位拥有15年财富管理经验的资深理财顾问，专注于为中国用户提供基于真实数据的个性化理财建议。你的报告专业、详细、可操作性强。"""
+            system_prompt = """你是一位财务分析与理财教育助手，专注于基于中国用户的真实数据生成专业、详细的财务分析报告。你的任务是讲清楚分析框架、权衡取舍和常见配置逻辑，帮助用户自己做判断——不点名具体基金、机构或平台，不把确定性的买卖指令或具体执行参数（金额、时点、价位）当作指令下达，本报告不替代持牌理财顾问的专业判断。"""
 
             user_prompt = f"""基于以下真实财务数据，生成一份详细的理财咨询报告（Markdown格式）。
 
@@ -1033,7 +1038,7 @@ Format Requirements:
 - 消费波动率：{volatility:.2%}
 - 可投资金额：¥{investable:,.2f}/月
 - 风险偏好：{risk_profile} ({risk_name_cn})
-- 投资目标：{investment_goal or '未明确指定'}
+- 投资目标：{investment_goal or "未明确指定"}
 - 交易记录：{len(txn_list)}笔，累计¥{total_amount:,.2f}
 
 ## 消费结构详情
@@ -1052,7 +1057,8 @@ Format Requirements:
 - 必须基于上述真实交易明细进行深度分析，不要泛泛而谈
 - 所有数据必须具体到金额、百分比、时间段
 - 分析消费趋势、异常交易、优化机会
-- 提供可操作的具体建议，包含真实产品名称、代码、平台
+- 具体讲清楚资产类别、策略和决策框架，但不点名具体基金、ETF、券商或平台，不把确定性的买卖指令或具体执行参数当作指令下达
+- 本报告为分析与教育性内容，不构成投资、信贷或保险决策依据，不替代持牌机构的专业判断，需在报告中明确声明，并提示用户自行核实、如有需要咨询持牌顾问
 
 ### 1. 报告摘要（400-500字）
 - 核心发现与建议（基于真实交易数据的洞察）
@@ -1084,19 +1090,19 @@ Format Requirements:
   * 最好/最坏/平均场景分析
   * 具体到每月投资金额的累积效果
 - **再平衡策略**: 何时调整，调整幅度
-- **税务优化考虑**: 具体的避税策略
-- **具体产品推荐**:
-  * 至少3-5只基金/ETF，包含完整名称和代码
-  * 每只产品的风险等级、历史收益、费率
-  * 购买渠道和平台推荐
+- **税务优化考虑**: 与该画像相关的通用税务效率概念
+- **资产类别选择框架**:
+  * 讲清楚3-5类相关资产/策略（如宽基指数基金、债券型基金、货币市场基金等）的特征、风险等级和适用场景，不点名具体基金名称、代码或发行机构
+  * 说明该关注哪些比较维度（风险等级、历史波动区间、费率结构），不引用具名产品的具体历史收益数字
+  * 说明选择购买渠道/平台时该核查哪些维度（监管资质、费率透明度、产品覆盖范围），不点名具体平台
 
 ### 5. 执行计划（1000-1200字）
-- **分步实施指南**:
-  * 第1-3月: 开户、首次配置、定投设置（具体操作步骤）
-  * 第3-6月: 监控调整（具体指标和阈值）
-  * 第6-12月: 优化升级（具体改进方向）
-- **开户与平台选择**: 推荐3-5个平台，比较费率和功能
-- **自动化设置**: 详细的定投、止盈止损设置
+- **分步框架**:
+  * 第1-3月: 开户前需要研究和确认哪些事项（具体决策标准）
+  * 第3-6月: 该监控哪些指标、什么阈值该触发复核
+  * 第6-12月: 如何评估方案是否在按预期运作、什么情况该重新考虑
+- **账户/平台选择要点**: 说明该核查的维度（监管资质、费率结构、产品覆盖范围），不推荐具体平台
+- **执行纪律概念**: 说明定投、再平衡等机制的作用原理，不给出具体金额、时点或价位作为确定性执行指令
 - **业绩监控方案**: 具体的KPI指标和监控频率
 
 ### 6. 风险提示与免责声明（600-800字）
@@ -1108,9 +1114,9 @@ Format Requirements:
 
 格式要求：
 - Markdown格式，标题层级清晰
-- 使用表格展示复杂数据（如产品对比、收益测算）
+- 使用表格展示复杂数据（如比较维度、场景测算）
 - 加粗重要数据和结论
-- 避免空洞的通用建议，所有建议必须有具体数字和时间表
+- 避免空洞的通用建议，所有分析必须落在用户的真实数据上，但不点名具体基金、券商或平台，不把具体产品选择或执行参数写成指令
 - 报告总字数应在4000-6000字之间"""
 
         try:
