@@ -67,7 +67,13 @@ class FileStorageBackend(StorageBackend):
             return {}
         try:
             with self.storage_file.open("r", encoding="utf-8") as handle:
-                return json.load(handle)
+                raw = handle.read()
+            if not raw.strip():
+                # Empty file is a normal "nothing persisted yet" state (e.g. the
+                # writability probe in _resolve_storage_file touches an empty
+                # file before anything is ever saved), not a corruption.
+                return {}
+            return json.loads(raw)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Failed to load storage file: %s", exc)
             return {}

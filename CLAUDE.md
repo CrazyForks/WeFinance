@@ -70,12 +70,7 @@ ruff check --fix .  # Auto-fix safe issues
 
 ### Vision OCR Testing
 ```bash
-# Simple test: Test Vision OCR with sample bills (uses assets/sample_bills/*.png)
-python test_vision_ocr.py
-
-# Expected: 100% recognition rate on all 3 sample bills
-
-# Advanced batch testing: Test all bills with metadata validation
+# Batch testing with metadata validation (uses assets/sample_bills/*.png)
 python scripts/test_vision_ocr.py --show-details --dump-json
 
 # This validates against expected_transactions in metadata.json
@@ -513,11 +508,11 @@ conda activate wefinance
 ### 1. Forgetting to Activate Conda Environment
 ```bash
 # WRONG: Uses system Python, missing packages
-python test_vision_ocr.py
+python scripts/test_vision_ocr.py
 
 # CORRECT: Activates environment first
 conda activate wefinance
-python test_vision_ocr.py
+python scripts/test_vision_ocr.py
 ```
 
 **Symptoms**: `ModuleNotFoundError: No module named 'streamlit'`
@@ -683,7 +678,7 @@ def chat(query):
 ### Vision OCR Not Working
 
 1. Check `.env` has valid `OPENAI_API_KEY`
-2. Test API connectivity: `python test_vision_ocr.py`
+2. Test API connectivity: `python scripts/test_vision_ocr.py --show-details --dump-json`
 3. Check logs: `services/vision_ocr_service.py` logs at INFO level
 4. Verify image format: PNG/JPG/JPEG only (PDF not supported by Vision API)
 5. Check API rate limits: `https://newapi.deepwisdom.ai/v1` may have limits
@@ -712,7 +707,7 @@ def chat(query):
 1. Check API rate limits: `https://newapi.deepwisdom.ai/v1` dashboard
 2. Verify network connectivity to OpenAI-compatible endpoint
 3. Review error logs: UserFacingError provides user-friendly context
-4. Check API key validity: Test with `curl` or `python test_vision_ocr.py`
+4. Check API key validity: Test with `curl` or `python scripts/test_vision_ocr.py --show-details --dump-json`
 
 **Graceful degradation**:
 - Vision OCR: Returns empty list via @safe_call(fallback=[])
@@ -889,9 +884,8 @@ WeFinance/
 │           ├── 02-system-architecture.md
 │           └── 03-sprint-plan.md
 │
-├── generate_sample_bills.py   # Generate Chinese sample bills
-├── generate_sample_bills_english.py # Generate English sample bills
-└── test_vision_ocr.py         # Manual Vision OCR testing script
+└── scripts/
+    └── test_vision_ocr.py     # Vision OCR batch validation script
 ```
 
 ## Git Workflow

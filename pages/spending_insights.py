@@ -61,14 +61,19 @@ def _render_active_anomalies(
         )
     for idx, anomaly in enumerate(anomalies):
         date_str = anomaly.get("date") or "-"
-        merchant = anomaly.get("merchant", "未知商户")
+        merchant = anomaly.get("merchant") or "未知商户"
         amount = anomaly.get("amount", 0.0)
         reason = anomaly.get("reason", "")
         status = anomaly.get("status", "new")
 
         box = st.warning if status == "new" else st.info
         with box(
-            f"{i18n.t('app.anomaly_info', date=date_str, merchant=merchant, amount=float(amount))}"
+            i18n.t(
+                "app.anomaly_info",
+                date=date_str,
+                merchant=merchant,
+                amount=f"{float(amount):,.2f}",
+            )
         ):
             if reason:
                 st.caption(reason)
@@ -128,7 +133,7 @@ def _render_sidebar_controls(trusted_merchants: List[str], i18n) -> None:
             st.write(i18n.t("spending.history_empty"))
         else:
             for record in history:
-                merchant = record.get("merchant", "未知商户")
+                merchant = record.get("merchant") or "未知商户"
                 amount = record.get("amount", 0.0)
                 status = record.get("status", "confirmed")
                 date_str = record.get("date", "-")
@@ -198,10 +203,7 @@ def render() -> None:
                 showlegend=True,
                 margin=dict(t=40, b=0, l=0, r=0),
             )
-            st.plotly_chart(
-                fig_pie,
-                **responsive_width_kwargs(st.plotly_chart)
-            )
+            st.plotly_chart(fig_pie, **responsive_width_kwargs(st.plotly_chart))
 
             bar_df = pie_df.sort_values("amount", ascending=False)
             fig_bar = px.bar(
@@ -220,10 +222,7 @@ def render() -> None:
                 yaxis_title=i18n.t("spending.label_amount"),
                 margin=dict(t=40, b=40, l=40, r=0),
             )
-            st.plotly_chart(
-                fig_bar,
-                **responsive_width_kwargs(st.plotly_chart)
-            )
+            st.plotly_chart(fig_bar, **responsive_width_kwargs(st.plotly_chart))
 
     with st.expander(i18n.t("spending.trend_title"), expanded=False):
         if not trend_daily.empty:
@@ -239,10 +238,7 @@ def render() -> None:
                 },
             )
             fig_line.update_layout(margin=dict(t=40, b=40, l=40, r=0))
-            st.plotly_chart(
-                fig_line,
-                **responsive_width_kwargs(st.plotly_chart)
-            )
+            st.plotly_chart(fig_line, **responsive_width_kwargs(st.plotly_chart))
         else:
             st.info(i18n.t("spending.trend_daily_empty"))
 
@@ -259,10 +255,7 @@ def render() -> None:
                 },
             )
             fig_month.update_layout(margin=dict(t=40, b=40, l=40, r=0))
-            st.plotly_chart(
-                fig_month,
-                **responsive_width_kwargs(st.plotly_chart)
-            )
+            st.plotly_chart(fig_month, **responsive_width_kwargs(st.plotly_chart))
 
     with st.expander(i18n.t("spending.insight_title"), expanded=True):
         if insights:

@@ -24,6 +24,7 @@ WeFinance是一个生产就绪的个人财务助理，利用前沿的Vision LLM�
 - **对话式财务顾问**：自然语言问答，具备交易上下文和预算感知能力
 - **可解释AI推荐**：透明的投资建议，展示决策推理链条
 - **主动异常检测**：实时异常支出检测，自适应阈值
+- **经营流水画像**：面向个体户和自由职业者的聚合视图，一处查看交易对手集中度、收支趋势与异常摘要
 
 ---
 
@@ -73,7 +74,7 @@ graph TB
 | **前端** | Streamlit | 1.37+ | 快速原型开发，Python原生 |
 | **Vision OCR** | GPT-4o Vision | - | 100%准确率，零本地依赖 |
 | **LLM服务** | GPT-4o API | - | 多模态理解，成本可控 |
-| **对话管理** | LangChain | 0.2+ | 记忆管理，上下文组装 |
+| **对话管理** | LangChain | 0.2.10+ | 记忆管理，上下文组装 |
 | **数据处理** | Pandas | 2.0+ | 时间序列分析，聚合 |
 | **可视化** | Plotly | 5.18+ | 交互式图表，响应式设计 |
 | **环境管理** | Conda | - | 可复现的科学计算环境 |
@@ -316,10 +317,7 @@ ruff check --fix .  # 自动修复安全问题
 ### Vision OCR测试
 
 ```bash
-# 使用示例账单简单测试
-python test_vision_ocr.py
-
-# 高级批量测试（带元数据验证）
+# 批量测试（带元数据验证）
 python scripts/test_vision_ocr.py --show-details --dump-json
 ```
 
@@ -333,10 +331,11 @@ python scripts/test_vision_ocr.py --show-details --dump-json
 - ✅ 可解释投资推荐
 - ✅ 主动异常检测
 - ✅ 双语支持（zh_CN, en_US）
+- ✅ PDF/Excel 账单导入（`services/ocr_service.py`，PDF 经 pypdfium2 转图片后走 Vision OCR）
+- ✅ 面向个体户/自由职业者的经营流水画像视图
 
 ### 近期计划 (v1.1-v1.2)
-- [ ] 多币种支持（USD, EUR, GBP, JPY）
-- [ ] PDF账单解析（银行对账单）
+- [ ] 多币种换算与聚合报表（目前每笔交易可记录币种，但尚未跨币种换算聚合）
 - [ ] 报告导出（PDF, Excel）
 - [ ] 移动端响应式UI优化
 - [ ] 批量账单处理API

@@ -536,9 +536,8 @@ Requirements:
                         title=rec.get("title", ""),
                         summary=rec.get("summary", ""),
                         rationale_steps=rec.get("rationale_steps", []),
-                        risk_level=rec.get(
-                            "risk_level", risk_map.get(risk_profile, "平衡型")
-                        ),
+                        risk_level=rec.get("risk_level")
+                        or risk_map.get(risk_profile, "平衡型"),
                     )
                 )
 

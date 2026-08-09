@@ -24,6 +24,7 @@ WeFinance is a production-ready personal finance assistant that leverages state-
 - **Conversational Financial Advisor**: Natural language Q&A with transaction context and budget awareness
 - **Explainable AI Recommendations**: Transparent investment advice with visible decision reasoning chains
 - **Proactive Anomaly Detection**: Real-time unusual spending detection with adaptive thresholds
+- **Business Cash-Flow Profile**: Aggregate view for sole proprietors and freelancers — merchant concentration, spending trend, and anomaly summary in one place
 
 ---
 
@@ -73,7 +74,7 @@ graph TB
 | **Frontend** | Streamlit | 1.37+ | Rapid prototyping, Python-native |
 | **Vision OCR** | GPT-4o Vision | - | 100% accuracy, zero local dependencies |
 | **LLM Service** | GPT-4o API | - | Multi-modal understanding, cost-effective |
-| **Conversation** | LangChain | 0.2+ | Memory management, context assembly |
+| **Conversation** | LangChain | 0.2.10+ | Memory management, context assembly |
 | **Data Processing** | Pandas | 2.0+ | Time series analysis, aggregation |
 | **Visualization** | Plotly | 5.18+ | Interactive charts, responsive design |
 | **Environment** | Conda | - | Reproducible scientific computing setup |
@@ -316,10 +317,7 @@ ruff check --fix .  # Auto-fix safe issues
 ### Vision OCR Testing
 
 ```bash
-# Simple test with sample bills
-python test_vision_ocr.py
-
-# Advanced batch testing with metadata validation
+# Batch testing with metadata validation
 python scripts/test_vision_ocr.py --show-details --dump-json
 ```
 
@@ -333,10 +331,11 @@ python scripts/test_vision_ocr.py --show-details --dump-json
 - ✅ Explainable investment recommendations
 - ✅ Proactive anomaly detection
 - ✅ Bilingual support (zh_CN, en_US)
+- ✅ PDF/Excel bill import (`services/ocr_service.py`, PDF pages rendered via pypdfium2 then run through Vision OCR)
+- ✅ Business cash-flow profile view for sole proprietors/freelancers
 
 ### Near-term (v1.1-v1.2)
-- [ ] Multi-currency support (USD, EUR, GBP, JPY)
-- [ ] PDF bill parsing (bank statements)
+- [ ] Multi-currency conversion and reporting (currency is captured per-transaction today, but not converted/aggregated across currencies)
 - [ ] Export reports (PDF, Excel)
 - [ ] Mobile-responsive UI optimization
 - [ ] Batch bill processing API

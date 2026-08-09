@@ -54,10 +54,9 @@ dependencies:
   # ============================================================
   - pip:
     # Web框架
-    - streamlit==1.28.0
+    - streamlit==1.38.0
 
     # LLM和AI框架（conda版本更新慢）
     - openai>=1.6.1
-    - langchain==0.1.0
-    - langchain-openai==0.0.2
-    - langchain-community==0.0.10
+    - langchain==0.2.10
+    - langchain-openai==0.1.7
