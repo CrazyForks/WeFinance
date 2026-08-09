@@ -90,8 +90,8 @@ def render() -> None:
         if items:
             for item in items:
                 date_str = item.get("date") or "-"
-                merchant = item.get(
-                    "merchant", i18n.t("business_profile.label_unknown")
+                merchant = item.get("merchant") or i18n.t(
+                    "business_profile.label_unknown"
                 )
                 amount = item.get("amount", 0.0)
                 reason = item.get("reason", "")
@@ -100,13 +100,17 @@ def render() -> None:
                         "app.anomaly_info",
                         date=date_str,
                         merchant=merchant,
-                        amount=float(amount),
+                        amount=f"{float(amount):,.2f}",
                     )
                 )
                 if reason:
                     st.caption(reason)
         else:
-            st.info(i18n.t("business_profile.anomaly_none"))
+            message_key = anomaly_report.get("message")
+            if message_key:
+                st.info(i18n.t(message_key))
+            else:
+                st.info(i18n.t("business_profile.anomaly_none"))
 
     st.caption(i18n.t("business_profile.footer_note"))
 

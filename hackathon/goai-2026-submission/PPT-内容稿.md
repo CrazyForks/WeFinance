@@ -1,6 +1,6 @@
 # GOAI 2026 初赛 PPT 内容稿（12 页）
 
-制作参考：`tools/build_goai_ppt.py` 用本稿内容生成 pptx。Demo 页截图来自实测（见 `assets/`，命名 `demo-*.png`）。品牌色取自 `utils/design_system.py`：主色 `#0d9488`（深青绿）、点缀色 `#d4af37`（金）、深色背景 `#0f172a`。
+制作参考：`tools/build_goai_ppt.py` 用本稿内容生成 pptx。Demo 页截图来自实测（见 `assets/`，命名 `demo-*.jpg`）。品牌色取自 `utils/design_system.py`：主色 `#0d9488`（深青绿）、点缀色 `#d4af37`（金）、深色背景 `#0f172a`。
 
 ## 第 1 页 封面
 
@@ -25,7 +25,7 @@
 - 任务输入：账单图片、用户预算、聊天问题
 - 意图理解与任务规划：`services/langchain_agent.py` 基于 LangChain AgentExecutor，识别查预算/查分类/查具体类目等意图
 - 能力调用：`query_budget`、`query_spending`、`query_category` 三类工具，结合对话记忆多轮交互
-- 结果交付：结构化交易记录、异常预警卡片、可解释推理链（理财建议附带 rationale_steps）
+- 结果交付：结构化交易记录、异常预警卡片、经营画像聚合视图（交易对手集中度/收支趋势）、可解释推理链（理财建议附带 rationale_steps）
 - 验证与反馈：异常检测支持用户"确认/标记误报"反馈闭环
 
 ## 第 5 页 技术与工程
@@ -33,14 +33,14 @@
 - Vision OCR：`services/vision_ocr_service.py`，GPT-4o Vision，温度 0.0，30 秒超时保护
 - 异常检测：`modules/analysis.py::compute_anomaly_report`，基于 z-score 统计方法，按样本量自适应调整灵敏度和阈值
 - 可解释推荐：`services/recommendation_service.py`，输出带因果推理步骤的理财建议
-- 全部服务层通过 `@safe_call` 装饰器提供超时保护和优雅降级
+- 多数服务层通过 `@safe_call` 装饰器提供超时保护和优雅降级（Vision OCR、理财报告生成均已覆盖）；Chat 走独立的重试+退避机制
 - 技术栈：Streamlit + LangChain + OpenAI 兼容 API + Pydantic + Plotly
 
 ## 第 6 页 Demo 演示
 
 - 本地实测（2026-08-08，通过）：种子交易数据走完消费洞察 -> 经营流水画像新视图（收支趋势、交易对手集中度、异常预警），展示数字随数据变化，非写死样例
 - 线上实测（2026-08-09）：Streamlit Cloud 曾因 Python 版本被误设为 3.13 导致全部页面无法加载，已修复为 3.10 并重新构建验证，页面恢复正常；随后真实上传样例账单触发线上 OCR 调用，因 Secrets 中 API key 被服务商拒绝（403）未跑通，非代码问题，失败路径按设计优雅降级（前端友好提示，应用不崩溃）
-- 实测过程顺带发现并修复四个真实工程缺陷：理财建议合规风险、`st.dataframe` 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃、线上 Python 版本配置错误
+- 实测过程顺带发现并修复五个真实工程缺陷：理财建议合规风险、`st.dataframe` 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃、线上 Python 版本配置错误、财务健康卡片 HTML 渲染为纯文本（CommonMark 空行截断）
 - 素材：见 `assets/demo-business-profile-*.jpg`（实测截图）
 
 ## 第 7 页 数据与合规
@@ -63,14 +63,14 @@
 
 ## 第 10 页 迭代与落地
 
-- 近期：修复线上 Streamlit Cloud 部署问题，稳定 Demo 可用性
+- 近期：线上部署问题已修复（Python 3.13→3.10），待用户更新 API key 后复测 OCR 全链路
 - 中期：经营流水画像扩展更多维度（如按周期对比、导出报表）
 - 长期：探索个体户/自由职业者报税辅助场景
 
 ## 第 11 页 原有基础与本次新增贡献
 
-- 原有基础：2025 年 11 月至 2026 年 1 月开发的完整产品，票据识别、消费分析、AI 顾问、投资建议四大核心链路已上线运行，GitHub 128 星
-- 本次新增：经营流水画像视图（交易对手集中度、收支趋势聚合）；修复 `generate_detailed_report` 的金融合规边界（不再要求 LLM 指名具体投资平台或给出确定性执行指令）；实测中顺带发现并修复三个真实工程缺陷（`st.dataframe` 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃、线上 Streamlit Cloud Python 版本配置错误）；GOAI 参赛材料
+- 原有基础：2025 年 11 月开发的完整产品，票据识别、消费分析、AI 顾问、投资建议四大核心链路已上线运行，GitHub 128 星
+- 本次新增：经营流水画像视图（交易对手集中度、收支趋势聚合）；修复 `generate_detailed_report` 的金融合规边界（不再要求 LLM 指名具体投资平台或给出确定性执行指令）；实测中顺带发现并修复四个真实工程缺陷（`st.dataframe` 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃、线上 Streamlit Cloud Python 版本配置错误、财务健康卡片 HTML 渲染为纯文本）；GOAI 参赛材料
 
 ## 第 12 页 结尾
 
