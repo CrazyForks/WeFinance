@@ -12,10 +12,8 @@ jobs:
       matrix:
         tool: [wefinance-chat, wefinance-recommend, wefinance-ocr]
         target:
-          - os: macos-14
+          - os: macos-latest
             platform: darwin-arm64
-          - os: macos-13
-            platform: darwin-x86_64
           - os: ubuntu-latest
             platform: linux-x86_64
 
