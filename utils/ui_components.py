@@ -116,8 +116,10 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
     }
 
     # 渲染卡片
-    st.markdown(
-        f"""
+    # 注意：st.markdown 底层走 CommonMark HTML block 规则，字符串内任何空行都会
+    # 提前终止 HTML block、导致后续标签被当作纯文本转义显示——构造多行 HTML 时
+    # 禁止在字符串内留空行（这里用 join 兜底剔除，防止未来改动时再引入空行）。
+    html = f"""
     <div class="wf-health-card">
         <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
             <!-- 左侧：状态信息 -->
@@ -207,9 +209,9 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
             </div>
         </div>
     </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    """
+    html = "\n".join(line for line in html.split("\n") if line.strip())
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def render_transaction_card(
