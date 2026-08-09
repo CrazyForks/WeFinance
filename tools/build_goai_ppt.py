@@ -60,8 +60,8 @@ SLIDES = [
         "title": "Demo 演示",
         "bullets": [
             "本地实测（2026-08-08，通过）：种子数据走完消费洞察 -> 经营流水画像新视图，数字随数据变化，非写死样例",
-            "线上实测（2026-08-08，未通过，如实标注）：Streamlit Cloud 因 ModuleNotFoundError 无法加载，属平台侧环境问题，需登录 Dashboard 重新部署",
-            "实测中顺带发现并修复三个真实工程缺陷：理财建议合规风险、st.dataframe 参数兼容崩溃、pyarrow/numpy ABI 不兼容崩溃",
+            "线上实测（2026-08-09）：Streamlit Cloud Python 版本配置错误（3.13）导致全部页面无法加载，已修复为 3.10 并重新验证，页面恢复正常",
+            "线上真实上传账单触发 OCR 调用，因 Secrets 中 API key 被服务商拒绝（403）未跑通，非代码问题，失败路径按设计优雅降级",
         ],
     },
     {
@@ -101,7 +101,7 @@ SLIDES = [
         "bullets": [
             "原有基础：2025 年 11 月至 2026 年 1 月开发的完整产品，票据识别、消费分析、AI 顾问、投资建议四大核心链路已上线运行，GitHub 128 星",
             "本次新增：经营流水画像视图（交易对手集中度、收支趋势聚合）；修复 generate_detailed_report 的金融合规边界",
-            "实测中顺带发现并修复两个真实工程缺陷（st.dataframe 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃）；GOAI 参赛材料",
+            "实测中顺带发现并修复三个真实工程缺陷（st.dataframe 参数兼容崩溃、pyarrow/numpy ABI 不兼容导致的原生崩溃、线上 Python 版本配置错误）；GOAI 参赛材料",
         ],
     },
     {
