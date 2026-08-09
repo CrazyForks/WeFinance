@@ -34,7 +34,7 @@ class ChatManager:
         history: Optional[List[dict]] = None,
         transactions: Optional[Iterable[Transaction | dict]] = None,
         monthly_budget: float | None = None,
-        model: str = "gpt-4o-mini",
+        model: str | None = None,
         api_key: str | None = None,
         base_url: str | None = None,
         locale: str | None = None,
@@ -44,7 +44,7 @@ class ChatManager:
             transactions
         )
         self.monthly_budget = monthly_budget if monthly_budget is not None else 0.0
-        self.model = model
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
         self.locale = locale or "zh_CN"

@@ -72,7 +72,8 @@ def _robust_json_parse(content: str) -> List[dict]:
     direct = _try_json_load(text)
     if direct is not None:
         return [
-            _apply_typo_fix(dict(entry)) for entry in direct  # type: ignore[arg-type]
+            _apply_typo_fix(dict(entry))
+            for entry in direct  # type: ignore[arg-type]
         ]
 
     array_match = re.search(r"\[\s*\{.*\}\s*\]", text, re.DOTALL)
@@ -171,7 +172,7 @@ class VisionOCRService:
 
     def __init__(
         self,
-        model: str = "gpt-4o",
+        model: Optional[str] = None,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
     ) -> None:
@@ -179,11 +180,12 @@ class VisionOCRService:
         初始化视觉OCR服务
 
         Args:
-            model: 视觉模型名称，默认使用 gpt-4o（推荐），也支持 qwen3-vl-plus, gemini-2.5-pro
+            model: 视觉模型名称，默认读取 OPENAI_MODEL 环境变量（缺省时回退 gpt-4o），
+                需要支持图片输入的模型，如 gpt-4o、qwen3-vl-plus、gemini-2.5-pro
             api_key: OpenAI兼容API密钥
             base_url: API基础URL
         """
-        self.model = model
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o")
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
 

@@ -71,7 +71,9 @@ def _convert_pdf_to_images(file_bytes: bytes, filename: str) -> List[bytes]:
             "errors.pdf_render_fail_suggestion",
             "Please confirm the PDF is not encrypted and retry.",
         )
-        raise UserFacingError(message, suggestion=suggestion, original_error=exc) from exc
+        raise UserFacingError(
+            message, suggestion=suggestion, original_error=exc
+        ) from exc
 
     if len(pdf_doc) == 0:
         message = _t(
@@ -112,9 +114,11 @@ class OCRService:
             lang: 保留参数用于向后兼容，但不再使用
             structuring_service: 不再需要，Vision LLM直接输出结构化数据
         """
-        # 使用Vision LLM服务（默认gpt-4o）
-        self._vision_ocr = VisionOCRService(model="gpt-4o")
-        logger.info("OCR服务初始化完成，使用Vision LLM (gpt-4o)")
+        # 使用Vision LLM服务（模型名读取 OPENAI_MODEL 环境变量，缺省回退 gpt-4o）
+        self._vision_ocr = VisionOCRService()
+        logger.info(
+            "OCR服务初始化完成，使用Vision LLM (model=%s)", self._vision_ocr.model
+        )
 
     def extract_text(self, image_bytes: bytes) -> str:
         """
@@ -211,9 +215,7 @@ class OCRService:
                     transactions: List[Transaction] = []
                     for page_bytes in page_images:
                         transactions.extend(
-                            self._vision_ocr.extract_transactions_from_image(
-                                page_bytes
-                            )
+                            self._vision_ocr.extract_transactions_from_image(page_bytes)
                         )
                 else:
                     # 使用Vision LLM直接提取交易记录
