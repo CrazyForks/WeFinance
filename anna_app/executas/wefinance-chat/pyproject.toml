@@ -1,0 +1,16 @@
+[project]
+name = "wefinance-chat"
+version = "0.1.0"
+description = "Answer financial questions grounded in the user's actual transactions."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+wefinance-chat = "wefinance_chat:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["wefinance_chat"]

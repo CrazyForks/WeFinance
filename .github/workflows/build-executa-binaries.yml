@@ -1,0 +1,90 @@
+name: Build & Release WeFinance Executa Binaries
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [wefinance-chat, wefinance-recommend, wefinance-ocr]
+        target:
+          - os: macos-14
+            platform: darwin-arm64
+          - os: macos-13
+            platform: darwin-x86_64
+          - os: ubuntu-latest
+            platform: linux-x86_64
+
+    runs-on: ${{ matrix.target.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build
+        working-directory: anna_app/executas/${{ matrix.tool }}
+        run: |
+          MODULE="${{ matrix.tool }}"
+          MODULE="${MODULE//-/_}.py"
+          pyinstaller \
+            --onefile \
+            --name "${{ matrix.tool }}" \
+            --clean \
+            --strip \
+            --noupx \
+            "$MODULE"
+
+      - name: Test binary speaks the Executa wire protocol
+        # The plugins are long-running daemons that never exit on stdin EOF,
+        # so a bare `echo ... | binary | assert` pipe hangs forever waiting
+        # on the binary's second readline(). test_executa_binary.py drives it
+        # as a subprocess and always terminates it in a finally block.
+        run: |
+          python3 scripts/test_executa_binary.py \
+            "anna_app/executas/${{ matrix.tool }}/dist/${{ matrix.tool }}" \
+            "${{ matrix.tool }}"
+
+      - name: Read minted tool_id from executa.json
+        id: tool_id
+        working-directory: anna_app/executas/${{ matrix.tool }}
+        run: |
+          echo "value=$(python3 -c "import json; print(json.load(open('executa.json'))['tool_id'])")" >> "$GITHUB_OUTPUT"
+
+      - name: Package (binary + archive-root manifest.json)
+        working-directory: anna_app/executas/${{ matrix.tool }}
+        run: |
+          cd dist
+          cat > manifest.json <<EOF
+          {
+            "name": "${{ steps.tool_id.outputs.value }}",
+            "version": "0.1.0",
+            "runtime": {
+              "binary": {
+                "entrypoint": "${{ matrix.tool }}",
+                "permissions": { "${{ matrix.tool }}": "0o755" }
+              }
+            }
+          }
+          EOF
+          tar czf "${{ matrix.tool }}-${{ matrix.target.platform }}.tar.gz" "${{ matrix.tool }}" manifest.json
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: anna_app/executas/${{ matrix.tool }}/dist/${{ matrix.tool }}-${{ matrix.target.platform }}.tar.gz
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.tool }}-${{ matrix.target.platform }}
+          path: anna_app/executas/${{ matrix.tool }}/dist/${{ matrix.tool }}-${{ matrix.target.platform }}.tar.gz
