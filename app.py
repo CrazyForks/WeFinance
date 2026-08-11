@@ -386,7 +386,7 @@ def _render_home() -> None:
     st.markdown("---")
     st.subheader(i18n.t("app.comparison_title"))
 
-    current_locale = st.session_state.get("locale", "zh_CN")
+    current_locale = st.session_state.get("locale", "en_US")
     comparison_df = get_comparison_table(current_locale)
     st.dataframe(
         comparison_df, **responsive_width_kwargs(st.dataframe), hide_index=True
@@ -496,8 +496,8 @@ def main() -> None:
 
         # 语言切换（紧凑）
         locale_labels = {"zh_CN": "中文", "en_US": "English"}
-        current_locale = st.session_state.get("locale", "zh_CN")
-        locale_display = locale_labels.get(current_locale, "中文")
+        current_locale = st.session_state.get("locale", "en_US")
+        locale_display = locale_labels.get(current_locale, "English")
         selected_display = st.selectbox(
             "🌐 Language" if current_locale == "en_US" else "🌐 语言",
             options=list(locale_labels.values()),

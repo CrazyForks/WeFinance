@@ -50,8 +50,12 @@ def render() -> None:
             amount = txn.amount if hasattr(txn, "amount") else 0
             categories[cat] = categories.get(cat, 0) + amount
 
-        top_category = max(categories.items(), key=lambda x: x[1])[0] if categories else "餐饮"
-        total_spent = sum(txn.amount if hasattr(txn, "amount") else 0 for txn in transactions_list)
+        top_category = (
+            max(categories.items(), key=lambda x: x[1])[0] if categories else "餐饮"
+        )
+        total_spent = sum(
+            txn.amount if hasattr(txn, "amount") else 0 for txn in transactions_list
+        )
         remaining = current_budget - total_spent
 
         # 根据实际数据生成4个示例问题
@@ -84,8 +88,7 @@ def render() -> None:
                 st.session_state["auto_query"] = question
                 st.rerun()
 
-
-    locale = st.session_state.get("locale", "zh_CN")
+    locale = st.session_state.get("locale", "en_US")
     chat_manager = ChatManager(
         history=history,
         transactions=transactions,

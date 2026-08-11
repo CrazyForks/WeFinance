@@ -123,7 +123,7 @@ def _collect_risk_answers(
             question.get("prompt")
             or question.get("question")
             or question.get("title")
-            or f"问题 {idx+1}"
+            or f"问题 {idx + 1}"
         )
 
         normalized_options = _normalize_question_options(question.get("options", []))
@@ -230,7 +230,10 @@ Return JSON format:
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             temperature=0.7,
             messages=[
-                {"role": "system", "content": "你是专业的理财顾问，擅长用简洁亲切的语言引导用户。"},
+                {
+                    "role": "system",
+                    "content": "你是专业的理财顾问，擅长用简洁亲切的语言引导用户。",
+                },
                 {"role": "user", "content": prompt},
             ],
             timeout=15,
@@ -266,9 +269,7 @@ def _render_results(results: Dict[str, object]) -> None:
     i18n = get_i18n()
     recommendations_raw = results.get("recommendations", [])
     recommendations = [
-        rec
-        if isinstance(rec, Recommendation)
-        else Recommendation(**rec)
+        rec if isinstance(rec, Recommendation) else Recommendation(**rec)
         for rec in recommendations_raw
     ]
     profile: Dict[str, object] = results.get("financial_profile", {})  # type: ignore[assignment]
@@ -282,23 +283,22 @@ def _render_results(results: Dict[str, object]) -> None:
     volatility = float(profile.get("spending_volatility", 0.0) or 0.0)
     investable = float(profile.get("investable_amount", 0.0) or 0.0)
     with col1:
-        st.metric(
-            i18n.t("recommendation.metric_monthly_avg"), f"¥{monthly_avg:,.0f}"
-        )
+        st.metric(i18n.t("recommendation.metric_monthly_avg"), f"¥{monthly_avg:,.0f}")
     with col2:
-        st.metric(
-            i18n.t("recommendation.metric_investable"), f"¥{investable:,.0f}"
-        )
+        st.metric(i18n.t("recommendation.metric_investable"), f"¥{investable:,.0f}")
     with col3:
         st.metric(
-            i18n.t("recommendation.metric_volatility"), f"{volatility*100:.1f}%"
+            i18n.t("recommendation.metric_volatility"), f"{volatility * 100:.1f}%"
         )
 
     breakdown: Dict[str, float] = profile.get("category_breakdown", {})  # type: ignore[assignment]
     if breakdown:
         st.subheader(i18n.t("recommendation.category_breakdown_title"))
         df = pd.DataFrame(
-            [{"category": cat, "share": share * 100} for cat, share in breakdown.items()]
+            [
+                {"category": cat, "share": share * 100}
+                for cat, share in breakdown.items()
+            ]
         )
         fig = px.bar(
             df,
@@ -323,7 +323,11 @@ def _render_results(results: Dict[str, object]) -> None:
 
     # 详细报告生成部分
     st.markdown("---")
-    st.subheader("📊 生成详细理财报告" if st.session_state.get("locale") == "zh_CN" else "📊 Generate Detailed Financial Report")
+    st.subheader(
+        "📊 生成详细理财报告"
+        if st.session_state.get("locale") == "zh_CN"
+        else "📊 Generate Detailed Financial Report"
+    )
     st.caption(
         "基于您的真实消费数据，生成3000-5000字的专业理财咨询报告，包含财务分析、风险评估、资产配置策略、执行计划等完整内容。"
         if st.session_state.get("locale") == "zh_CN"
@@ -331,9 +335,11 @@ def _render_results(results: Dict[str, object]) -> None:
     )
 
     if st.button(
-        "🚀 生成详细报告（使用GPT-4o完整模型）" if st.session_state.get("locale") == "zh_CN" else "🚀 Generate Detailed Report (GPT-4o)",
+        "🚀 生成详细报告（使用GPT-4o完整模型）"
+        if st.session_state.get("locale") == "zh_CN"
+        else "🚀 Generate Detailed Report (GPT-4o)",
         type="primary",
-        key="generate_detailed_report"
+        key="generate_detailed_report",
     ):
         # 从session_state获取必要数据
         transactions = session_utils.get_transactions()
@@ -341,7 +347,11 @@ def _render_results(results: Dict[str, object]) -> None:
         investment_goal = st.session_state.get("investment_goal", "")
         risk_profile_key = st.session_state.get("risk_profile_key", "balanced")
 
-        with st.spinner("正在生成详细报告，这可能需要30-60秒..." if st.session_state.get("locale") == "zh_CN" else "Generating detailed report, this may take 30-60 seconds..."):
+        with st.spinner(
+            "正在生成详细报告，这可能需要30-60秒..."
+            if st.session_state.get("locale") == "zh_CN"
+            else "Generating detailed report, this may take 30-60 seconds..."
+        ):
             service = RecommendationService()
             detailed_report = service.generate_detailed_report(
                 transactions=transactions,
@@ -349,28 +359,45 @@ def _render_results(results: Dict[str, object]) -> None:
                 investment_goal=investment_goal,
                 risk_profile=risk_profile_key,
                 metrics=profile,  # type: ignore[arg-type]
-                locale=st.session_state.get("locale", "zh_CN")
+                locale=st.session_state.get("locale", "en_US"),
             )
 
             if detailed_report:
                 st.session_state["detailed_financial_report"] = detailed_report
-                st.success("✅ 详细报告生成成功！" if st.session_state.get("locale") == "zh_CN" else "✅ Report generated successfully!")
+                st.success(
+                    "✅ 详细报告生成成功！"
+                    if st.session_state.get("locale") == "zh_CN"
+                    else "✅ Report generated successfully!"
+                )
             else:
-                st.error("❌ 报告生成失败，请稍后重试。" if st.session_state.get("locale") == "zh_CN" else "❌ Report generation failed, please try again later.")
+                st.error(
+                    "❌ 报告生成失败，请稍后重试。"
+                    if st.session_state.get("locale") == "zh_CN"
+                    else "❌ Report generation failed, please try again later."
+                )
 
     # 显示已生成的详细报告
-    if "detailed_financial_report" in st.session_state and st.session_state["detailed_financial_report"]:
+    if (
+        "detailed_financial_report" in st.session_state
+        and st.session_state["detailed_financial_report"]
+    ):
         st.markdown("---")
-        st.markdown("## 📄 详细理财咨询报告" if st.session_state.get("locale") == "zh_CN" else "## 📄 Detailed Financial Advisory Report")
+        st.markdown(
+            "## 📄 详细理财咨询报告"
+            if st.session_state.get("locale") == "zh_CN"
+            else "## 📄 Detailed Financial Advisory Report"
+        )
 
         # 提供下载按钮
         report_content = st.session_state["detailed_financial_report"]
         st.download_button(
-            label="💾 下载报告（Markdown格式）" if st.session_state.get("locale") == "zh_CN" else "💾 Download Report (Markdown)",
+            label="💾 下载报告（Markdown格式）"
+            if st.session_state.get("locale") == "zh_CN"
+            else "💾 Download Report (Markdown)",
             data=report_content,
             file_name=f"financial_report_{pd.Timestamp.now().strftime('%Y%m%d')}.md",
             mime="text/markdown",
-            key="download_report"
+            key="download_report",
         )
 
         # 渲染Markdown报告
@@ -393,11 +420,15 @@ def render() -> None:
 
     # 获取用户预算和财务状况
     budget = get_monthly_budget()
-    locale = st.session_state.get("locale", "zh_CN")
+    locale = st.session_state.get("locale", "en_US")
 
     # === 简化流程：单步输入模式 ===
     st.markdown("---")
-    st.markdown("### 💡 快速理财规划" if locale == "zh_CN" else "### 💡 Quick Financial Planning")
+    st.markdown(
+        "### 💡 快速理财规划"
+        if locale == "zh_CN"
+        else "### 💡 Quick Financial Planning"
+    )
     st.caption(
         "无需复杂问卷，直接告诉我您的理财目标，AI将为您生成个性化的详细理财方案。"
         if locale == "zh_CN"
@@ -406,7 +437,9 @@ def render() -> None:
 
     # 智能目标输入（带示例）
     goal_input = st.text_area(
-        "📝 请描述您的理财目标" if locale == "zh_CN" else "📝 Describe your financial goal",
+        "📝 请描述您的理财目标"
+        if locale == "zh_CN"
+        else "📝 Describe your financial goal",
         placeholder=(
             "示例：\n"
             "• 我想在3年内存够20万首付买房\n"
@@ -430,9 +463,15 @@ def render() -> None:
     risk_preference = st.radio(
         "💼 您的风险偏好" if locale == "zh_CN" else "💼 Risk Preference",
         options=[
-            "保守型（不能接受本金亏损）" if locale == "zh_CN" else "Conservative (No principal loss)",
-            "稳健型（可接受小幅波动）" if locale == "zh_CN" else "Balanced (Moderate volatility)",
-            "进取型（追求高收益，可接受较大波动）" if locale == "zh_CN" else "Aggressive (High return, high volatility)",
+            "保守型（不能接受本金亏损）"
+            if locale == "zh_CN"
+            else "Conservative (No principal loss)",
+            "稳健型（可接受小幅波动）"
+            if locale == "zh_CN"
+            else "Balanced (Moderate volatility)",
+            "进取型（追求高收益，可接受较大波动）"
+            if locale == "zh_CN"
+            else "Aggressive (High return, high volatility)",
         ],
         index=1,
         key="quick_risk_preference",
@@ -441,7 +480,9 @@ def render() -> None:
 
     # 一键生成详细报告
     if st.button(
-        "🚀 生成专业理财报告（3000-5000字深度分析）" if locale == "zh_CN" else "🚀 Generate Professional Report (3000-5000 words)",
+        "🚀 生成专业理财报告（3000-5000字深度分析）"
+        if locale == "zh_CN"
+        else "🚀 Generate Professional Report (3000-5000 words)",
         type="primary",
         disabled=not goal_input.strip(),
         key="generate_quick_report",
@@ -455,7 +496,9 @@ def render() -> None:
             risk_profile_key = "balanced"
 
         with st.spinner(
-            "正在生成详细报告，预计需要30-60秒..." if locale == "zh_CN" else "Generating report, estimated 30-60 seconds..."
+            "正在生成详细报告，预计需要30-60秒..."
+            if locale == "zh_CN"
+            else "Generating report, estimated 30-60 seconds..."
         ):
             try:
                 service = RecommendationService()
@@ -477,12 +520,24 @@ def render() -> None:
                     st.session_state["detailed_financial_report"] = detailed_report
                     st.session_state["investment_goal"] = goal_input.strip()
                     st.session_state["risk_profile_key"] = risk_profile_key
-                    st.success("✅ 报告生成成功！" if locale == "zh_CN" else "✅ Report generated!")
+                    st.success(
+                        "✅ 报告生成成功！"
+                        if locale == "zh_CN"
+                        else "✅ Report generated!"
+                    )
                     st.rerun()
                 else:
-                    st.error("❌ 报告生成失败，请检查网络连接或稍后重试。" if locale == "zh_CN" else "❌ Failed to generate report.")
+                    st.error(
+                        "❌ 报告生成失败，请检查网络连接或稍后重试。"
+                        if locale == "zh_CN"
+                        else "❌ Failed to generate report."
+                    )
             except Exception as exc:
-                st.error(f"❌ 生成失败：{exc}" if locale == "zh_CN" else f"❌ Generation failed: {exc}")
+                st.error(
+                    f"❌ 生成失败：{exc}"
+                    if locale == "zh_CN"
+                    else f"❌ Generation failed: {exc}"
+                )
 
     # 显示已生成的详细报告（仅当尚未有资产配置结果时避免重复展示）
     if (
@@ -491,7 +546,11 @@ def render() -> None:
         and not st.session_state.get("recommendation_explanation")
     ):
         st.markdown("---")
-        st.markdown("## 📄 详细理财咨询报告" if locale == "zh_CN" else "## 📄 Detailed Financial Report")
+        st.markdown(
+            "## 📄 详细理财咨询报告"
+            if locale == "zh_CN"
+            else "## 📄 Detailed Financial Report"
+        )
 
         # 提供下载按钮
         report_content = st.session_state["detailed_financial_report"]
@@ -528,7 +587,9 @@ def render() -> None:
         )
 
         # 生成个性化问题（LLM动态生成）
-        with st.spinner(i18n.t("common.loading") if locale == "zh_CN" else "Loading..."):
+        with st.spinner(
+            i18n.t("common.loading") if locale == "zh_CN" else "Loading..."
+        ):
             service = RecommendationService()
             questions = service.generate_personalized_questions(
                 transactions=transactions,
@@ -567,7 +628,11 @@ def render() -> None:
         )
 
         st.subheader(i18n.t("recommendation.step3"))
-        if st.button(i18n.t("recommendation.button_generate"), type="secondary", key="advanced_generate"):
+        if st.button(
+            i18n.t("recommendation.button_generate"),
+            type="secondary",
+            key="advanced_generate",
+        ):
             try:
                 with st.spinner(i18n.t("common.loading_recommendation")):
                     results = _generate_cached_recommendation(

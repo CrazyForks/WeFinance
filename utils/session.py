@@ -30,7 +30,7 @@ DEFAULT_STATE: Dict[str, Any] = {
     "anomaly_history": [],
     "trusted_merchants": [],
     "anomaly_message": "",
-    "locale": "zh_CN",
+    "locale": "en_US",
     "chat_cache": {},
     "chat_cache_version": 0,
     "monthly_budget": 5000.0,
@@ -51,7 +51,7 @@ def init_session_state() -> None:
                 st.session_state[key] = default_value
 
     if "i18n" not in st.session_state:
-        st.session_state["i18n"] = I18n(st.session_state.get("locale", "zh_CN"))
+        st.session_state["i18n"] = I18n(st.session_state.get("locale", "en_US"))
 
 
 def reset_session_state(keys: List[str] | None = None) -> None:
@@ -227,7 +227,7 @@ def get_i18n() -> I18n:
         return i18n
 
     # 创建新实例
-    i18n = I18n(st.session_state.get("locale", "zh_CN"))
+    i18n = I18n(st.session_state.get("locale", "en_US"))
     st.session_state["i18n"] = i18n
     return i18n
 
