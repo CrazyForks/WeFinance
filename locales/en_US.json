@@ -257,17 +257,17 @@
     "sample_q4": "How can I save for a new car?",
     "empty_history": "No chat history yet. Start asking to begin the conversation.",
     "input_placeholder": "Enter your financial question…",
-    "system_prompt": "You are WeFinance Copilot, a professional personal finance assistant.\nHelp users understand their spending and provide actionable advice.\n\nUser transactions:\n{transactions_summary}\n\nUser budget:\nMonthly budget: {monthly_budget} RMB\nSpent: {spent} RMB\nRemaining: {remaining} RMB\n\nResponse requirements:\n1. Use plain language with minimal jargon\n2. Reference the user's real data\n3. Provide concrete numbers and suggestions\n4. Keep responses concise (1-3 sentences)",
+    "system_prompt": "You are WeFinance Copilot, a professional personal finance assistant.\nHelp users understand their spending and provide actionable advice.\n\nUser transactions:\n{transactions_summary}\n\nUser budget:\nMonthly budget: ${monthly_budget}\nSpent: ${spent}\nRemaining: ${remaining}\n\nResponse requirements:\n1. Use plain language with minimal jargon\n2. Reference the user's real data\n3. Provide concrete numbers and suggestions\n4. Keep responses concise (1-3 sentences)",
     "heuristic_no_budget": "You haven’t set a monthly budget yet. Set one first and I’ll calculate the remaining amount.",
-    "heuristic_budget": "You have about ¥{remaining:.2f} remaining this month after spending ¥{spent:.2f}. Consider allocating the rest to key categories to avoid overspending.",
+    "heuristic_budget": "You have about ${remaining:.2f} remaining this month after spending ${spent:.2f}. Consider allocating the rest to key categories to avoid overspending.",
     "heuristic_no_transactions": "I haven’t seen any transactions yet. Upload bills and I’ll show which category costs the most.",
-    "heuristic_top_category": "Your top spending category recently is \"{category}\" with about ¥{amount:.2f}.",
+    "heuristic_top_category": "Your top spending category recently is \"{category}\" with about ${amount:.2f}.",
     "heuristic_recent_empty": "No new transactions recorded in the past few days.",
-    "heuristic_recent_avg": "Average daily spending over the past three days is about ¥{average:.2f}.",
+    "heuristic_recent_avg": "Average daily spending over the past three days is about ${average:.2f}.",
     "heuristic_etf": "An ETF is a basket of assets. Buying one share spreads risk across many stocks or bonds, usually with low fees—great for long-term investing.",
     "fallback_error": "Sorry, I can’t reach the AI service right now. Please try again later.",
     "fallback_error_detail": "Sorry, I can’t reach the AI service right now. Details: {error}",
-    "fallback_summary": "LLM is unavailable. Quick summary: you’ve spent about ¥{spent:.2f}, with roughly ¥{remaining:.2f} remaining. Top spending category: {category} (≈ ¥{amount:.2f})."
+    "fallback_summary": "LLM is unavailable. Quick summary: you’ve spent about ${spent:.2f}, with roughly ${remaining:.2f} remaining. Top spending category: {category} (≈ ${amount:.2f})."
   },
   "recommendation": {
     "title": "💡 Investment Recommendations & Explainability",

@@ -123,7 +123,9 @@ class ChatManager:
             :3
         ]
         summary_lines = [
-            f"- {category}: ¥{amount:.2f}" for category, amount in top_categories
+            f"- {self.i18n.translate_category(category)}: "
+            f"{self.i18n.currency_symbol}{amount:.2f}"
+            for category, amount in top_categories
         ]
         return (
             "\n".join(summary_lines) if summary_lines else self.i18n.t("common.no_data")

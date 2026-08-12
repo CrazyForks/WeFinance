@@ -132,15 +132,15 @@ Risk Questionnaire:
 Total Score: {score}
 
 User Financial Profile:
-- Monthly spending: ¥{monthly_avg:.2f}
+- Monthly spending: ${monthly_avg:.2f}
 - Spending volatility: {volatility:.2%} (higher = less stable)
-- Investable amount: ¥{investable:.2f}/month
+- Investable amount: ${investable:.2f}/month
 
 Comprehensive Assessment Rules:
 1. Don't rely solely on questionnaire score - real data is more important
 2. If volatility > 30%, actual risk tolerance is lower than questionnaire suggests (income unstable)
-3. If investable < 500元/month, not suitable for aggressive strategy
-4. If monthly spending < 3000元, might be student/low-income, be cautious
+3. If investable < $500/month, not suitable for aggressive strategy
+4. If monthly spending < $3000, might be student/low-income, be cautious
 
 Analyze and return JSON:
 {{
@@ -735,11 +735,11 @@ Requirements:
             user_prompt = f"""Generate 3-5 personalized risk tolerance questions based on user's financial data:
 
 User Financial Profile:
-- Monthly spending: ¥{monthly_avg:,.2f}
-- Monthly budget: ¥{budget:,.2f}
+- Monthly spending: ${monthly_avg:,.2f}
+- Monthly budget: ${budget:,.2f}
 - Budget usage: {budget_usage_rate:.1f}%
 - Spending volatility: {volatility:.2%}
-- Investable amount: ¥{investable:,.2f}/month
+- Investable amount: ${investable:,.2f}/month
 - Top spending category: {top_category} ({top_category_share * 100:.1f}%)
 - Total transactions: {len(txn_list)} records
 
@@ -907,9 +907,11 @@ Requirements:
             cat = txn.category or "其他"
             categories[cat] = categories.get(cat, 0) + txn.amount
 
-        # 消费类别详情
+        # 消费类别详情（按 locale 选择货币符号，避免英文报告里混入人民币符号）
+        currency = "$" if locale == "en_US" else "¥"
+        unknown_merchant = "Unknown merchant" if locale == "en_US" else "未知商户"
         category_details = "\n".join(
-            f"  - **{cat}**: ¥{amount:,.2f} ({amount / total_amount * 100:.1f}%)"
+            f"  - **{cat}**: {currency}{amount:,.2f} ({amount / total_amount * 100:.1f}%)"
             for cat, amount in sorted(
                 categories.items(), key=lambda x: x[1], reverse=True
             )
@@ -917,7 +919,7 @@ Requirements:
 
         # 完整交易明细（供LLM深入分析）
         transaction_details = "\n".join(
-            f"  - {t.date} | {t.merchant or '未知商户'} | {t.category} | ¥{t.amount:.2f}"
+            f"  - {t.date} | {t.merchant or unknown_merchant} | {t.category} | {currency}{t.amount:.2f}"
             for t in sorted(txn_list, key=lambda x: x.date)
         )
 
@@ -942,12 +944,12 @@ Requirements:
             user_prompt = f"""Generate a detailed financial advisory report in Markdown format.
 
 ## User Financial Profile
-- Monthly Spending: ¥{monthly_avg:,.2f}
+- Monthly Spending: ${monthly_avg:,.2f}
 - Spending Volatility: {volatility:.2%}
-- Investable Amount: ¥{investable:,.2f}/month
+- Investable Amount: ${investable:,.2f}/month
 - Risk Tolerance: {risk_profile} ({risk_name_cn})
 - Investment Goal: {investment_goal or "Not specified"}
-- Total Transactions: {len(txn_list)} records, ¥{total_amount:,.2f}
+- Total Transactions: {len(txn_list)} records, ${total_amount:,.2f}
 
 ## Spending Breakdown
 {category_details}
