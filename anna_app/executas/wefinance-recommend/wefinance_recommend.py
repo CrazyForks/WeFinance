@@ -23,7 +23,7 @@ from collections import defaultdict
 MANIFEST = {
     "name": "wefinance-recommend",
     "display_name": "WeFinance Investment Recommendations",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Generate explainable investment recommendations grounded in the user's real spending data.",
     "author": "calderbuild",
     "host_capabilities": ["llm.sample"],
