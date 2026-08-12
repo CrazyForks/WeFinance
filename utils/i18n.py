@@ -48,3 +48,21 @@ class I18n:
         """Switch to different locale."""
         self.locale = locale
         self.translations = self._load_translations(locale)
+
+    @property
+    def currency_symbol(self) -> str:
+        """Currency symbol for the active locale (falls back to $)."""
+        return "¥" if self.locale == "zh_CN" else "$"
+
+    def translate_category(self, raw_category: str) -> str:
+        """Display label for a transaction category.
+
+        OCR always extracts categories in Chinese (services/vision_ocr_service.py's
+        prompt is tuned against that exact enum and isn't safe to change casually),
+        so this only relabels for display -- it never touches stored data.
+        Unknown categories pass through unchanged rather than leaking a raw
+        "categories.xxx" key, since dict.get's default (not t()'s key-echo
+        fallback) is used here.
+        """
+        table = self.translations.get("categories", {})
+        return table.get(raw_category, raw_category)

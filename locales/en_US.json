@@ -342,5 +342,14 @@
     "category_tip_summary": "{category} accounts for about {share:.1f}% of spending. Redirecting part of it into lower-volatility assets can boost efficiency.",
     "category_tip_step": "Cover essentials first, then auto-invest up to ¥{investable:.0f} to curb impulse spending.",
     "info_wait": "Fill in the questionnaire and click the button to generate your tailored allocation."
+  },
+  "categories": {
+    "餐饮": "Dining",
+    "交通": "Transport",
+    "购物": "Shopping",
+    "娱乐": "Entertainment",
+    "医疗": "Medical",
+    "教育": "Education",
+    "其他": "Other"
   }
 }

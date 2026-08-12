@@ -50,21 +50,32 @@ def render() -> None:
             amount = txn.amount if hasattr(txn, "amount") else 0
             categories[cat] = categories.get(cat, 0) + amount
 
-        top_category = (
+        top_category_raw = (
             max(categories.items(), key=lambda x: x[1])[0] if categories else "餐饮"
         )
+        # OCR always extracts categories in Chinese; translate for display only
+        # so English-locale questions don't have a raw Chinese word embedded.
+        top_category = i18n.translate_category(top_category_raw)
         total_spent = sum(
             txn.amount if hasattr(txn, "amount") else 0 for txn in transactions_list
         )
         remaining = current_budget - total_spent
 
         # 根据实际数据生成4个示例问题
-        sample_questions = [
-            f"我这个月{top_category}花了多少？",
-            f"还剩{remaining:.0f}元预算，怎么合理安排？",
-            f"我的{top_category}消费算高吗？如何优化？",
-            "给我一个适合我的理财建议",
-        ]
+        if i18n.locale == "zh_CN":
+            sample_questions = [
+                f"我这个月{top_category}花了多少？",
+                f"还剩{remaining:.0f}元预算，怎么合理安排？",
+                f"我的{top_category}消费算高吗？如何优化？",
+                "给我一个适合我的理财建议",
+            ]
+        else:
+            sample_questions = [
+                f"How much have I spent on {top_category} this month?",
+                f"I have {i18n.currency_symbol}{remaining:.0f} left in my budget -- how should I plan it?",
+                f"Is my {top_category} spending too high? How can I cut it down?",
+                "Give me a financial recommendation suited to me",
+            ]
     else:
         # 无数据时显示通用问题
         sample_questions = [

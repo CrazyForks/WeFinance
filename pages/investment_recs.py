@@ -206,9 +206,9 @@ def _generate_guidance_text(
             prompt = f"""You are a professional financial advisor guiding users through risk assessment and investment planning.
 
 User's financial situation:
-- Monthly spending: ¥{monthly_avg:.0f}
-- Monthly budget: ¥{budget:.0f}
-- Investable amount: ¥{investable:.0f}
+- Monthly spending: ${monthly_avg:.0f}
+- Monthly budget: ${budget:.0f}
+- Investable amount: ${investable:.0f}
 
 Generate two guidance texts:
 1. Risk assessment guidance (10-15 words): Guide users to understand their risk tolerance
@@ -283,9 +283,15 @@ def _render_results(results: Dict[str, object]) -> None:
     volatility = float(profile.get("spending_volatility", 0.0) or 0.0)
     investable = float(profile.get("investable_amount", 0.0) or 0.0)
     with col1:
-        st.metric(i18n.t("recommendation.metric_monthly_avg"), f"¥{monthly_avg:,.0f}")
+        st.metric(
+            i18n.t("recommendation.metric_monthly_avg"),
+            f"{i18n.currency_symbol}{monthly_avg:,.0f}",
+        )
     with col2:
-        st.metric(i18n.t("recommendation.metric_investable"), f"¥{investable:,.0f}")
+        st.metric(
+            i18n.t("recommendation.metric_investable"),
+            f"{i18n.currency_symbol}{investable:,.0f}",
+        )
     with col3:
         st.metric(
             i18n.t("recommendation.metric_volatility"), f"{volatility * 100:.1f}%"
@@ -335,9 +341,11 @@ def _render_results(results: Dict[str, object]) -> None:
     )
 
     if st.button(
-        "🚀 生成详细报告（使用GPT-4o完整模型）"
-        if st.session_state.get("locale") == "zh_CN"
-        else "🚀 Generate Detailed Report (GPT-4o)",
+        (
+            "🚀 生成详细报告（使用GPT-4o完整模型）"
+            if st.session_state.get("locale") == "zh_CN"
+            else "🚀 Generate Detailed Report (GPT-4o)"
+        ),
         type="primary",
         key="generate_detailed_report",
     ):
@@ -391,9 +399,11 @@ def _render_results(results: Dict[str, object]) -> None:
         # 提供下载按钮
         report_content = st.session_state["detailed_financial_report"]
         st.download_button(
-            label="💾 下载报告（Markdown格式）"
-            if st.session_state.get("locale") == "zh_CN"
-            else "💾 Download Report (Markdown)",
+            label=(
+                "💾 下载报告（Markdown格式）"
+                if st.session_state.get("locale") == "zh_CN"
+                else "💾 Download Report (Markdown)"
+            ),
             data=report_content,
             file_name=f"financial_report_{pd.Timestamp.now().strftime('%Y%m%d')}.md",
             mime="text/markdown",
@@ -437,23 +447,27 @@ def render() -> None:
 
     # 智能目标输入（带示例）
     goal_input = st.text_area(
-        "📝 请描述您的理财目标"
-        if locale == "zh_CN"
-        else "📝 Describe your financial goal",
+        (
+            "📝 请描述您的理财目标"
+            if locale == "zh_CN"
+            else "📝 Describe your financial goal"
+        ),
         placeholder=(
-            "示例：\n"
-            "• 我想在3年内存够20万首付买房\n"
-            "• 长期投资，希望每年收益10%以上\n"
-            "• 为孩子准备50万教育金，10年后使用\n"
-            "• 退休养老规划，需要稳健增值"
-        )
-        if locale == "zh_CN"
-        else (
-            "Examples:\n"
-            "• Save ¥200k for house down payment in 3 years\n"
-            "• Long-term investment with 10%+ annual return\n"
-            "• ¥500k education fund for child in 10 years\n"
-            "• Retirement planning with stable growth"
+            (
+                "示例：\n"
+                "• 我想在3年内存够20万首付买房\n"
+                "• 长期投资，希望每年收益10%以上\n"
+                "• 为孩子准备50万教育金，10年后使用\n"
+                "• 退休养老规划，需要稳健增值"
+            )
+            if locale == "zh_CN"
+            else (
+                "Examples:\n"
+                "• Save $200k for house down payment in 3 years\n"
+                "• Long-term investment with 10%+ annual return\n"
+                "• $500k education fund for child in 10 years\n"
+                "• Retirement planning with stable growth"
+            )
         ),
         height=120,
         key="quick_goal_input",
@@ -463,15 +477,21 @@ def render() -> None:
     risk_preference = st.radio(
         "💼 您的风险偏好" if locale == "zh_CN" else "💼 Risk Preference",
         options=[
-            "保守型（不能接受本金亏损）"
-            if locale == "zh_CN"
-            else "Conservative (No principal loss)",
-            "稳健型（可接受小幅波动）"
-            if locale == "zh_CN"
-            else "Balanced (Moderate volatility)",
-            "进取型（追求高收益，可接受较大波动）"
-            if locale == "zh_CN"
-            else "Aggressive (High return, high volatility)",
+            (
+                "保守型（不能接受本金亏损）"
+                if locale == "zh_CN"
+                else "Conservative (No principal loss)"
+            ),
+            (
+                "稳健型（可接受小幅波动）"
+                if locale == "zh_CN"
+                else "Balanced (Moderate volatility)"
+            ),
+            (
+                "进取型（追求高收益，可接受较大波动）"
+                if locale == "zh_CN"
+                else "Aggressive (High return, high volatility)"
+            ),
         ],
         index=1,
         key="quick_risk_preference",
@@ -480,9 +500,11 @@ def render() -> None:
 
     # 一键生成详细报告
     if st.button(
-        "🚀 生成专业理财报告（3000-5000字深度分析）"
-        if locale == "zh_CN"
-        else "🚀 Generate Professional Report (3000-5000 words)",
+        (
+            "🚀 生成专业理财报告（3000-5000字深度分析）"
+            if locale == "zh_CN"
+            else "🚀 Generate Professional Report (3000-5000 words)"
+        ),
         type="primary",
         disabled=not goal_input.strip(),
         key="generate_quick_report",
@@ -579,7 +601,14 @@ def render() -> None:
         _render_results(persisted_results)
 
     # === 高级模式：保留完整问卷流程（折叠） ===
-    with st.expander("🔧 高级模式：完整风险评估问卷（可选）", expanded=False):
+    with st.expander(
+        (
+            "🔧 高级模式：完整风险评估问卷（可选）"
+            if locale == "zh_CN"
+            else "🔧 Advanced mode: full risk assessment questionnaire (optional)"
+        ),
+        expanded=False,
+    ):
         st.caption(
             "适合需要精细化风险评估的用户，通过多维度问卷深度分析您的风险承受能力。"
             if locale == "zh_CN"

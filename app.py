@@ -335,11 +335,11 @@ def _render_home() -> None:
                 font-weight: 600;
                 color: {remaining_color};
                 margin-bottom: {SPACING["xs"]};
-            ">¥{budget_remaining:,.0f}</div>
+            ">{i18n.currency_symbol}{budget_remaining:,.0f}</div>
             <div style="
                 font-size: {FONTS["size_sm"]};
                 color: {COLORS["text_secondary"]};
-            ">{"已支出" if is_zh else "Spent"}: ¥{total_spent:,.0f} ({usage_rate:.0f}%)</div>
+            ">{"已支出" if is_zh else "Spent"}: {i18n.currency_symbol}{total_spent:,.0f} ({usage_rate:.0f}%)</div>
         </div>
         """,
             unsafe_allow_html=True,

@@ -158,7 +158,7 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
                         font-size: {FONTS["size_xl"]};
                         font-weight: 600;
                         color: {COLORS["text_primary"]};
-                    ">¥{budget:,.0f}</div>
+                    ">{i18n.currency_symbol}{budget:,.0f}</div>
                 </div>
 
                 <!-- 已支出 -->
@@ -175,7 +175,7 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
                         font-size: {FONTS["size_xl"]};
                         font-weight: 600;
                         color: {COLORS["accent"]};
-                    ">¥{total_spent:,.0f}</div>
+                    ">{i18n.currency_symbol}{total_spent:,.0f}</div>
                 </div>
 
                 <!-- 剩余 -->
@@ -192,7 +192,7 @@ def render_financial_health_card(transactions: List[Transaction]) -> None:
                         font-size: {FONTS["size_xl"]};
                         font-weight: 600;
                         color: {COLORS["success"] if remaining >= 0 else COLORS["error"]};
-                    ">¥{remaining:,.0f}</div>
+                    ">{i18n.currency_symbol}{remaining:,.0f}</div>
                 </div>
             </div>
 
@@ -251,6 +251,7 @@ def render_transaction_card(
     }
 
     icon = category_icons.get(transaction.category, "📦")
+    category_label = i18n.translate_category(transaction.category)
 
     st.markdown(
         f"""
@@ -280,7 +281,7 @@ def render_transaction_card(
                 <div style="
                     font-size: {FONTS["size_sm"]};
                     color: {COLORS["text_secondary"]};
-                ">{transaction.date} · {transaction.category}</div>
+                ">{transaction.date} · {category_label}</div>
             </div>
         </div>
         <div style="
@@ -288,7 +289,7 @@ def render_transaction_card(
             font-size: {FONTS["size_lg"]};
             font-weight: 600;
             color: {COLORS["error"]};
-        ">-¥{transaction.amount:,.2f}</div>
+        ">-{i18n.currency_symbol}{transaction.amount:,.2f}</div>
     </div>
     """,
         unsafe_allow_html=True,
@@ -400,7 +401,7 @@ def render_anomaly_alert(
                 font-size: {FONTS["size_lg"]};
                 font-weight: 600;
                 color: {color};
-            ">¥{amount:,.2f}</div>
+            ">{i18n.currency_symbol}{amount:,.2f}</div>
         </div>
     </div>
     """,
