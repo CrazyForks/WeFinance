@@ -158,6 +158,11 @@ Kate 特别提到 WeFinance 的 “receipt / statement → insights” 工作流
 
 ### App Review
 - 现在有专门的 reviewer 通过 **PENDING_REVIEW 审核队列**跑 App，处理效率比之前快（具体审核标准细则 Discord 里没搜到，`co-creation` 论坛频道目前是空的，没有其他 builder 分享案例可参考——这块还是信息盲区，等自己提审时才能知道实际尺度）
+- **2026-08-12 补充：状态机 + 通知机制已在 `anna.partners/developers/apps/app-publish`（"Publishing an App"）里白纸黑字，之前的信息盲区可以关掉了：**
+  - 状态机：`DRAFT --submit--> PENDING_REVIEW --admin approve--> APPROVED --publish version--> PUBLISHED`，另有 `REJECTED`（打回可改后重提，不扣分）、`ARCHIVED`（下架，已装用户不受影响）两个分支
+  - admin 走 `POST /super-admin/apps/{id}/approve`，body 带 `publish: bool`：`publish:true` 直接连审带发，一步到 `PUBLISHED`；`publish:false` 只到 `APPROVED`——**这种情况下不会自动上架**，还要自己回 Versions tab 点一次 "Publish" 才真正进 App Store
+  - **关键坑：没有邮件通知**（原文 "There is no email notification today"），也**没有 SLA 承诺**（"no enforced SLA today; check My Apps in the Console for the current status"）——意味着只能自己定期回控制台查，或调 `GET /developer/apps/{id}` 看 `status` 字段，不会有任何主动推送告诉你审完了
+  - Reviewer 至少会核两件事：manifest 对着 schema + 当前 Executa 目录重新校验一遍；listing 文案/截图和实际表现是否相符
 
 ### 更新一下 Phase 2 的行动项
 - [ ] 发布时用 `?ref=` 参数分别标记 MeetSpot 导流 / VibeDoc 导流 / 个人 X 导流，跑完就知道哪个渠道转化率最高，不用瞎猜

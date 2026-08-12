@@ -18,19 +18,22 @@ PLUGIN = Path(__file__).parent / "wefinance_recommend.py"
 FAKE_RECS = {
     "recommendations": [
         {
-            "title": "建立应急储备金",
-            "summary": "先攒3-6个月生活费再谈投资",
-            "rationale_steps": ["你的月消费波动率较高", "先有缓冲垫再投资更稳妥"],
-            "risk_level": "保守型",
+            "title": "Build an emergency fund first",
+            "summary": "Save 3-6 months of expenses before investing",
+            "rationale_steps": [
+                "Your monthly spending volatility is relatively high",
+                "A cash buffer makes investing safer once it's in place",
+            ],
+            "risk_level": "Conservative",
         }
     ]
 }
 
 SAMPLE_TRANSACTIONS = [
-    {"date": "2026-06-05", "amount": 240.0, "category": "餐饮"},
-    {"date": "2026-06-15", "amount": 30.0, "category": "交通"},
-    {"date": "2026-07-05", "amount": 300.0, "category": "餐饮"},
-    {"date": "2026-07-20", "amount": 50.0, "category": "交通"},
+    {"date": "2026-06-05", "amount": 240.0, "category": "Dining", "currency": "USD"},
+    {"date": "2026-06-15", "amount": 30.0, "category": "Transport", "currency": "USD"},
+    {"date": "2026-07-05", "amount": 300.0, "category": "Dining", "currency": "USD"},
+    {"date": "2026-07-20", "amount": 50.0, "category": "Transport", "currency": "USD"},
 ]
 
 
@@ -113,7 +116,7 @@ def main() -> int:
                     "arguments": {
                         "transactions": SAMPLE_TRANSACTIONS,
                         "risk_profile": "conservative",
-                        "investment_goal": "3年后买车首付",
+                        "investment_goal": "car down payment in 3 years",
                     },
                     "context": {"invoke_id": "test-invoke-2"},
                 },
@@ -128,8 +131,9 @@ def main() -> int:
         # sanity: the prompt should reference the real computed monthly average
         # (540/2 months = 270 dining + 40 transit -> monthly_average ~= 310)
         prompt_text = reverse_rpc["params"]["messages"][0]["content"]["text"]
-        assert "月均消费" in prompt_text, prompt_text
-        assert "3年后买车首付" in prompt_text, prompt_text
+        assert "Average monthly spending" in prompt_text, prompt_text
+        assert "car down payment in 3 years" in prompt_text, prompt_text
+        assert "USD" in prompt_text, prompt_text
         print(
             "sampling/createMessage request (json_schema): OK (well-formed, metrics embedded)"
         )
@@ -156,8 +160,23 @@ def main() -> int:
             "invoke generate_recommendations: OK (round trip returned fake recs unchanged)"
         )
 
-        # 5. a *downgraded* sampling response missing "recommendations" must
-        #    surface as a clean failure, not a silent success with an empty list
+        def _downgraded_result(text: str) -> dict:
+            return {
+                "role": "assistant",
+                "content": {"type": "text", "text": text},
+                "_meta": {
+                    "responseFormat": {
+                        "requested": "json_schema",
+                        "applied": "json_object",
+                        "structuredValid": True,
+                        "downgraded": True,
+                    }
+                },
+            }
+
+        # 5. two downgraded responses in a row -> retry once (with an explicit
+        #    shape instruction appended to the prompt), then surface as a
+        #    clean failure -- never a silent success with an empty list
         #    (executa-sampling.md _meta.responseFormat.downgraded).
         send(
             proc,
@@ -175,40 +194,91 @@ def main() -> int:
                 },
             },
         )
-        reverse_rpc = recv(proc)
-        assert reverse_rpc["method"] == "sampling/createMessage", reverse_rpc
+        reverse_rpc_1 = recv(proc)
+        assert reverse_rpc_1["method"] == "sampling/createMessage", reverse_rpc_1
         send(
             proc,
             {
                 "jsonrpc": "2.0",
-                "id": reverse_rpc["id"],
-                "result": {
-                    "role": "assistant",
-                    "content": {"type": "text", "text": "{}"},
-                    "_meta": {
-                        "responseFormat": {
-                            "requested": "json_schema",
-                            "applied": "json_object",
-                            "structuredValid": True,
-                            "downgraded": True,
-                        }
-                    },
-                },
+                "id": reverse_rpc_1["id"],
+                "result": _downgraded_result("{}"),
+            },
+        )
+        reverse_rpc_2 = recv(proc)  # the retry
+        assert reverse_rpc_2["method"] == "sampling/createMessage", reverse_rpc_2
+        assert (
+            "IMPORTANT" in reverse_rpc_2["params"]["messages"][0]["content"]["text"]
+        ), reverse_rpc_2
+        send(
+            proc,
+            {
+                "jsonrpc": "2.0",
+                "id": reverse_rpc_2["id"],
+                "result": _downgraded_result("{}"),
             },
         )
         final = recv(proc)
         assert final["id"] == 5, final
         assert final["result"]["success"] is False, final
-        assert "downgraded" in final["result"]["error"].lower(), final
-        print("downgraded-response guard: OK (surfaced as failure, not empty success)")
+        assert "after one retry" in final["result"]["error"].lower(), final
+        print("downgraded-response guard: OK (retried once, then surfaced as failure)")
 
-        # 6. health -- executa-lifecycle.md's documented shape
-        send(proc, {"jsonrpc": "2.0", "id": 6, "method": "health"})
+        # 6. first response downgraded/missing, second response valid -> the
+        #    retry must recover into a success, not just fail more gracefully.
+        send(
+            proc,
+            {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "method": "invoke",
+                "params": {
+                    "tool": "generate_recommendations",
+                    "arguments": {
+                        "transactions": SAMPLE_TRANSACTIONS,
+                        "risk_profile": "balanced",
+                    },
+                    "context": {"invoke_id": "test-invoke-downgrade-recovers"},
+                },
+            },
+        )
+        reverse_rpc_1 = recv(proc)
+        assert reverse_rpc_1["method"] == "sampling/createMessage", reverse_rpc_1
+        send(
+            proc,
+            {
+                "jsonrpc": "2.0",
+                "id": reverse_rpc_1["id"],
+                "result": _downgraded_result("{}"),
+            },
+        )
+        reverse_rpc_2 = recv(proc)  # the retry
+        assert reverse_rpc_2["method"] == "sampling/createMessage", reverse_rpc_2
+        send(
+            proc,
+            {
+                "jsonrpc": "2.0",
+                "id": reverse_rpc_2["id"],
+                "result": {
+                    "role": "assistant",
+                    "content": {"type": "text", "text": json.dumps(FAKE_RECS)},
+                },
+            },
+        )
+        final = recv(proc)
+        assert final["id"] == 6, final
+        assert final["result"]["success"] is True, final
+        assert (
+            final["result"]["data"]["recommendations"] == FAKE_RECS["recommendations"]
+        ), final
+        print("downgraded-response retry: OK (recovered into a success)")
+
+        # 7. health -- executa-lifecycle.md's documented shape
+        send(proc, {"jsonrpc": "2.0", "id": 7, "method": "health"})
         resp = recv(proc)
         assert resp["result"]["status"] == "ready", resp
         print("health: OK")
 
-        # 7. malformed JSON on stdin -> documented -32700 parse error, and
+        # 8. malformed JSON on stdin -> documented -32700 parse error, and
         #    the reader thread must survive it (not silently die).
         assert proc.stdin is not None
         proc.stdin.write("not valid json\n")
@@ -217,8 +287,8 @@ def main() -> int:
         assert resp["error"]["code"] == -32700, resp
         print("malformed JSON: OK (-32700, reader thread survived)")
 
-        # 8. shutdown handler
-        send(proc, {"jsonrpc": "2.0", "id": 8, "method": "shutdown"})
+        # 9. shutdown handler
+        send(proc, {"jsonrpc": "2.0", "id": 9, "method": "shutdown"})
         resp = recv(proc)
         assert resp["result"]["ok"] is True, resp
         print("shutdown: OK")

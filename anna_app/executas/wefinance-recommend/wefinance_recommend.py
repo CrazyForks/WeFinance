@@ -22,8 +22,8 @@ from collections import defaultdict
 
 MANIFEST = {
     "name": "wefinance-recommend",
-    "display_name": "WeFinance Advisor",
-    "version": "0.1.0",
+    "display_name": "WeFinance Investment Recommendations",
+    "version": "0.1.1",
     "description": "Generate explainable investment recommendations grounded in the user's real spending data.",
     "author": "calderbuild",
     "host_capabilities": ["llm.sample"],
@@ -36,7 +36,11 @@ MANIFEST = {
                 {
                     "name": "transactions",
                     "type": "array",
-                    "description": "List of {date: YYYY-MM-DD, amount: number, category: string} objects.",
+                    "description": (
+                        "List of {date: YYYY-MM-DD, amount: number, category: string, "
+                        "currency: string (optional, ISO-4217 code e.g. USD/CNY/EUR -- "
+                        "defaults to USD if omitted or if rows disagree on currency)} objects."
+                    ),
                     "required": True,
                 },
                 {
@@ -48,7 +52,7 @@ MANIFEST = {
                 {
                     "name": "investment_goal",
                     "type": "string",
-                    "description": "Free-text investment goal, e.g. '3 年后买车首付'. Optional.",
+                    "description": "Free-text investment goal, e.g. 'car down payment in 3 years'. Optional.",
                     "required": False,
                 },
             ],
@@ -57,9 +61,9 @@ MANIFEST = {
 }
 
 RISK_LABELS = {
-    "conservative": "保守型（不愿承受波动，追求稳健收益）",
-    "balanced": "平衡型（可接受适度波动，追求收益与风险平衡）",
-    "aggressive": "进取型（可承受较大波动，追求高收益）",
+    "conservative": "Conservative (avoids volatility, prioritizes steady, stable returns)",
+    "balanced": "Balanced (accepts moderate volatility, balances return and risk)",
+    "aggressive": "Aggressive (comfortable with larger swings, targets higher returns)",
 }
 
 RECOMMENDATIONS_SCHEMA = {
@@ -167,7 +171,7 @@ def _category_breakdown(rows: list) -> dict:
         return {}
     totals: dict = defaultdict(float)
     for r in rows:
-        totals[r.get("category") or "其他"] += r["amount"]
+        totals[r.get("category") or "Other"] += r["amount"]
     total = sum(totals.values())
     if total == 0:
         return {}
@@ -175,9 +179,29 @@ def _category_breakdown(rows: list) -> dict:
     return dict(sorted(shares.items(), key=lambda item: item[1], reverse=True))
 
 
+def _detect_currency(rows: list) -> str:
+    """Best-effort currency code for prompt rendering. Falls back to USD when
+    rows don't declare a currency or declare more than one -- mixed-currency
+    aggregation isn't supported, so we render a defensible default rather
+    than silently picking whichever currency happened to come first.
+    """
+    codes = {
+        (r.get("currency") or "").strip().upper()
+        for r in rows
+        if (r.get("currency") or "").strip()
+    }
+    if len(codes) == 1:
+        return next(iter(codes))
+    return "USD"
+
+
 def _estimate_investable(monthly_avg: float) -> float:
     if monthly_avg <= 0:
         return 0.0
+    # NOTE: these tier thresholds are CNY-scaled magic numbers carried over
+    # from the original service and are not currency-aware -- a $2,900/month
+    # USD spender gets the same low-tier ratio as a low CNY spender. Not part
+    # of the Anna App Review's blocking findings; left as-is for now.
     ratio = 0.1 if monthly_avg < 3_000 else 0.2 if monthly_avg < 10_000 else 0.3
     return round(monthly_avg * ratio, 2)
 
@@ -235,7 +259,13 @@ def _send(obj: dict) -> None:
     sys.stdout.flush()
 
 
-def sample_structured(invoke_id: str, prompt: str, *, max_tokens: int = 800) -> dict:
+def _request_structured_completion(
+    invoke_id: str, prompt: str, max_tokens: int
+) -> tuple:
+    """Single sampling/createMessage round trip. Returns (parsed_json,
+    downgraded_missing_key) -- the second value is True exactly when the host
+    downgraded from json_schema AND the parsed body lacks "recommendations".
+    """
     if not v2_negotiated:
         raise RuntimeError(
             "Sampling unavailable: host did not negotiate protocol v2 for this session."
@@ -283,58 +313,103 @@ def sample_structured(invoke_id: str, prompt: str, *, max_tokens: int = 800) -> 
     # "recommendations" would otherwise become success:true + empty list,
     # masking exactly the failure the schema was meant to catch.
     response_format_meta = (result.get("_meta") or {}).get("responseFormat") or {}
-    if response_format_meta.get("downgraded") and "recommendations" not in data:
+    downgraded_missing = bool(
+        response_format_meta.get("downgraded") and "recommendations" not in data
+    )
+    return data, downgraded_missing
+
+
+# Appended to the prompt on the single repair retry -- kept short and blunt on
+# purpose: the model already saw the full prompt once, so the point isn't to
+# re-explain the task, it's to strip away any ambiguity about response *shape*
+# for a model that couldn't honour strict json_schema mode.
+RETRY_REPAIR_SUFFIX = (
+    "\n\nIMPORTANT: Respond with ONLY a single JSON object of this exact shape "
+    "and nothing else -- no markdown fences, no commentary before or after it:\n"
+    '{"recommendations": [{"title": "...", "summary": "...", '
+    '"rationale_steps": ["...", "..."], "risk_level": "..."}]}'
+)
+
+
+def sample_structured(invoke_id: str, prompt: str, *, max_tokens: int = 800) -> dict:
+    data, downgraded_missing = _request_structured_completion(
+        invoke_id, prompt, max_tokens
+    )
+    if not downgraded_missing:
+        return data
+
+    # Before failing loudly, give the model exactly ONE more chance with a
+    # blunter, shape-only instruction appended -- some models that ignore a
+    # schema embedded in responseFormat will still follow an explicit inline
+    # instruction. No further retries after this: a second failure means the
+    # model genuinely can't produce the shape we need, and silently looping
+    # would just burn the invoke's sampling-call budget for no benefit. Keep
+    # the fail-loud behavior as the final fallback -- do not silently return
+    # an empty recommendations list.
+    print(
+        "sample_structured: downgraded response missing 'recommendations', "
+        "retrying once with an explicit shape instruction",
+        file=sys.stderr,
+    )
+    retry_data, retry_downgraded_missing = _request_structured_completion(
+        invoke_id, prompt + RETRY_REPAIR_SUFFIX, max_tokens
+    )
+    if retry_downgraded_missing:
         raise RuntimeError(
             "Model response was downgraded from json_schema and did not contain "
-            f"'recommendations': {text[:200]!r}"
+            "'recommendations' (after one retry with an explicit shape "
+            f"instruction): {json.dumps(retry_data)[:200]!r}"
         )
-    return data
+    return retry_data
 
 
 # --- Tool logic --------------------------------------------------------------
 
 
-def build_prompt(metrics: dict, risk_profile: str, investment_goal: str) -> str:
+def build_prompt(
+    metrics: dict, risk_profile: str, investment_goal: str, currency: str = "USD"
+) -> str:
     monthly_avg = metrics["monthly_average"]
     breakdown = metrics["category_breakdown"]
     breakdown_str = (
         "\n".join(
-            f"  - {cat}: ¥{amt * monthly_avg:.2f} ({amt * 100:.1f}%)"
+            f"  - {cat}: {amt * monthly_avg:.2f} {currency} ({amt * 100:.1f}%)"
             for cat, amt in list(breakdown.items())[:5]
         )
         if breakdown and monthly_avg > 0
-        else "  （暂无数据）"
+        else "  (no spending data yet)"
     )
-    return f"""你是一位专业的理财顾问，根据用户的真实消费数据提供个性化投资建议。
+    return f"""You are a professional financial advisor. Give personalized investment recommendations based on the user's real spending data.
 
-用户财务画像：
-- 月均消费：¥{monthly_avg:.2f}
-- 消费波动率：{metrics["spending_volatility"]:.2%}（越高说明消费越不稳定）
-- 可投资金额：¥{metrics["investable_amount"]:.2f}/月
-- 风险偏好：{RISK_LABELS.get(risk_profile, risk_profile)}
-- 投资目标：{investment_goal or "未指定具体目标"}
+User financial profile:
+- Average monthly spending: {monthly_avg:.2f} {currency}
+- Spending volatility: {metrics["spending_volatility"]:.2%} (higher means less predictable spending)
+- Estimated investable amount: {metrics["investable_amount"]:.2f} {currency}/month (a heuristic derived from spending patterns, NOT a verified income-minus-expenses surplus -- do not present it as the user's actual monthly surplus)
+- Risk profile: {RISK_LABELS.get(risk_profile, risk_profile)}
+- Investment goal: {investment_goal or "not specified"}
 
-消费结构（Top 5类目）：
+Spending breakdown (top 5 categories):
 {breakdown_str}
 
-请基于以上数据，生成2-3条具体的理财建议。每条建议需要包含：
-1. 标题（简短有力，10字以内）
-2. 摘要（一句话说明这条建议的核心内容，30字左右）
-3. 推理步骤（2-4步，每步解释为什么这样建议，展示可解释性）
-4. 风险等级（保守型/平衡型/进取型）
+Based on this data, generate 2-3 specific, personalized investment recommendations. Each recommendation must include:
+1. A title (short and punchy, 8 words or fewer)
+2. A summary (one sentence describing the core of this recommendation, about 25 words)
+3. Rationale steps (2-4 steps, each explaining WHY this is recommended, showing your reasoning -- e.g. "Because your X is Y, we recommend Z")
+4. A risk level (Conservative / Balanced / Aggressive)
 
-要求：
-- 必须基于用户的真实数据（消费金额、结构、波动率）
-- 推理步骤要体现因果关系（"因为你的XX情况，所以建议YY"）
-- 避免通用建议，要个性化
-- 如果可投资金额很少(<500元/月)，诚实告知并给出实际可行的建议"""
+Requirements:
+- Base every recommendation on the user's real data (spending amount, structure, volatility)
+- Rationale steps must show cause and effect, not generic advice
+- Avoid generic, one-size-fits-all suggestions -- personalize to this user's numbers
+- If the estimated investable amount is small relative to monthly spending, say so honestly and suggest realistic, low-barrier options instead of assuming a large investable surplus"""
 
 
 def generate_recommendations(
     invoke_id: str, transactions: list, risk_profile: str, investment_goal: str
 ) -> list:
     metrics = analyze_transactions(transactions)
-    prompt = build_prompt(metrics, risk_profile, investment_goal)
+    currency = _detect_currency(transactions)
+    prompt = build_prompt(metrics, risk_profile, investment_goal, currency)
     data = sample_structured(invoke_id, prompt)
     return data.get("recommendations", [])
 

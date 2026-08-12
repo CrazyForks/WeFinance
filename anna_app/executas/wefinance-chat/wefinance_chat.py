@@ -26,8 +26,8 @@ import uuid
 
 MANIFEST = {
     "name": "wefinance-chat",
-    "display_name": "WeFinance Advisor",
-    "version": "0.1.0",
+    "display_name": "WeFinance Advisor Chat",
+    "version": "0.1.1",
     "description": "Ask financial questions about your spending and get advice grounded in your actual transactions.",
     "author": "calderbuild",
     "host_capabilities": ["llm.sample"],
@@ -55,11 +55,17 @@ MANIFEST = {
 }
 
 SYSTEM_PROMPT = (
-    "You are WeFinance's financial advisor. Answer the user's question using ONLY "
-    "the transaction data provided as context. Be specific and reference actual "
-    "merchants, categories, or amounts from the data. Keep answers concise (3-5 "
-    "sentences). If the data doesn't support an answer, say so honestly instead "
-    "of guessing."
+    "You are WeFinance's financial advisor. Ground your answer in the transaction "
+    "data provided as context -- be specific and reference actual merchants, "
+    "categories, or amounts from that data, and never invent transactions or "
+    "spending figures that aren't in it. In addition to the transaction data, the "
+    "user's question may state financial details directly -- income, salary, "
+    "savings, budget limits, goals, or timelines. Treat anything the user states "
+    "about themselves in their own question as true and factor it into your "
+    "answer (for example, weigh a stated monthly income against the spending "
+    "shown in the transaction data). Keep answers concise (3-5 sentences). If "
+    "neither the transaction data nor the question gives you enough to answer, "
+    "say so honestly instead of guessing."
 )
 
 # executa-sampling.md "Error codes" table -- error.data.errorCode carries the

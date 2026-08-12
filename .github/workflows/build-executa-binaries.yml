@@ -53,11 +53,12 @@ jobs:
             "anna_app/executas/${{ matrix.tool }}/dist/${{ matrix.tool }}" \
             "${{ matrix.tool }}"
 
-      - name: Read minted tool_id from executa.json
+      - name: Read minted tool_id and version from executa.json
         id: tool_id
         working-directory: anna_app/executas/${{ matrix.tool }}
         run: |
           echo "value=$(python3 -c "import json; print(json.load(open('executa.json'))['tool_id'])")" >> "$GITHUB_OUTPUT"
+          echo "version=$(python3 -c "import json; print(json.load(open('executa.json'))['version'])")" >> "$GITHUB_OUTPUT"
 
       - name: Package (binary + archive-root manifest.json)
         working-directory: anna_app/executas/${{ matrix.tool }}
@@ -66,7 +67,7 @@ jobs:
           cat > manifest.json <<EOF
           {
             "name": "${{ steps.tool_id.outputs.value }}",
-            "version": "0.1.0",
+            "version": "${{ steps.tool_id.outputs.version }}",
             "runtime": {
               "binary": {
                 "entrypoint": "${{ matrix.tool }}",
